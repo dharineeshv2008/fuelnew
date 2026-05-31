@@ -1,0 +1,819 @@
+{
+  "matrix": {
+    "Aruppukkottai": {
+      "Madurai": 65,
+      "Virudhunagar": 35,
+      "Ramanathapuram": 80
+    },
+    "Attur": {
+      "Salem": 35,
+      "Namakkal": 70,
+      "Cuddalore": 130
+    },
+    "Bangalore": {
+      "Hosur": 35,
+      "Krishnagiri": 60,
+      "Dharmapuri": 130
+    },
+    "Bhavani": {
+      "Erode": 18,
+      "Namakkal": 50,
+      "Gobichettipalayam": 40
+    },
+    "Chidambaram": {
+      "Cuddalore": 55,
+      "Nagapattinam": 70,
+      "Trichy": 160,
+      "Villupuram": 70,
+      "Pondicherry": 70,
+      "Kumbakonam": 85
+    },
+    "Chennai": {
+      "Vellore": 145,
+      "Kanchipuram": 72,
+      "Tiruvallur": 45,
+      "Villupuram": 162,
+      "Cuddalore": 195,
+      "Trichy": 322,
+      "Madurai": 459,
+      "Coimbatore": 500,
+      "Salem": 335,
+      "Tirunelveli": 637,
+      "Thanjavur": 350,
+      "Nagapattinam": 310,
+      "Pondicherry": 170,
+      "Krishnagiri": 230,
+      "Dharmapuri": 270,
+      "Ranipet": 110,
+      "Tirupattur": 200,
+      "Chengalpattu": 55,
+      "Ariyalur": 350,
+      "Perambalur": 352,
+      "Karur": 390,
+      "Dindigul": 430,
+      "Namakkal": 370,
+      "Erode": 400,
+      "Tiruppur": 455,
+      "Ramanathapuram": 562,
+      "Virudhunagar": 530,
+      "Thoothukudi": 634,
+      "Tenkasi": 650,
+      "Kanyakumari": 705,
+      "Pudukkottai": 410,
+      "Sivaganga": 500,
+      "Tiruchirappalli": 322,
+      "Kallakurichi": 215,
+      "Mayiladuthurai": 295,
+      "Tiruvarur": 310,
+      "Ooty": 560,
+      "Hosur": 280
+    },
+    "Chengalpattu": {
+      "Chennai": 55,
+      "Kanchipuram": 40,
+      "Villupuram": 115,
+      "Pondicherry": 120,
+      "Tambaram": 20
+    },
+    "Coimbatore": {
+      "Erode": 80,
+      "Tiruppur": 53,
+      "Ooty": 86,
+      "Pollachi": 40,
+      "Salem": 160,
+      "Madurai": 220,
+      "Trichy": 210,
+      "Dharmapuri": 170,
+      "Namakkal": 125,
+      "Dindigul": 150,
+      "Tirunelveli": 345,
+      "Karur": 140,
+      "Ooty": 86,
+      "Palani": 100,
+      "Theni": 200,
+      "Chennai": 500
+    },
+    "Cuddalore": {
+      "Chennai": 195,
+      "Pondicherry": 28,
+      "Villupuram": 55,
+      "Chidambaram": 55,
+      "Nagapattinam": 110,
+      "Trichy": 160,
+      "Panruti": 20
+    },
+    "Dharmapuri": {
+      "Salem": 60,
+      "Krishnagiri": 55,
+      "Hosur": 85,
+      "Bangalore": 130,
+      "Coimbatore": 170,
+      "Chennai": 270,
+      "Vellore": 135,
+      "Namakkal": 110
+    },
+    "Dindigul": {
+      "Madurai": 64,
+      "Palani": 65,
+      "Theni": 75,
+      "Karur": 85,
+      "Trichy": 100,
+      "Coimbatore": 150,
+      "Namakkal": 140,
+      "Chennai": 430,
+      "Erode": 150
+    },
+    "Erode": {
+      "Coimbatore": 80,
+      "Salem": 60,
+      "Tiruppur": 60,
+      "Karur": 85,
+      "Namakkal": 57,
+      "Dindigul": 150,
+      "Gobichettipalayam": 40,
+      "Bhavani": 18,
+      "Sathyamangalam": 60,
+      "Palani": 110,
+      "Chennai": 400
+    },
+    "Gobichettipalayam": {
+      "Erode": 40,
+      "Coimbatore": 95,
+      "Bhavani": 40,
+      "Sathyamangalam": 40
+    },
+    "Hosur": {
+      "Krishnagiri": 25,
+      "Chennai": 280,
+      "Bangalore": 35,
+      "Salem": 155,
+      "Dharmapuri": 85
+    },
+    "Kanchipuram": {
+      "Chennai": 72,
+      "Chengalpattu": 40,
+      "Vellore": 92,
+      "Tiruvallur": 85,
+      "Sriperumbudur": 25
+    },
+    "Kanyakumari": {
+      "Tirunelveli": 93,
+      "Thoothukudi": 125,
+      "Madurai": 240,
+      "Trivandrum": 90,
+      "Padmanabhapuram": 25,
+      "Nagercoil": 5
+    },
+    "Karur": {
+      "Trichy": 77,
+      "Erode": 85,
+      "Coimbatore": 140,
+      "Namakkal": 55,
+      "Dindigul": 85,
+      "Salem": 130,
+      "Chennai": 390,
+      "Kulithalai": 40
+    },
+    "Krishnagiri": {
+      "Hosur": 25,
+      "Dharmapuri": 55,
+      "Salem": 95,
+      "Vellore": 95,
+      "Bangalore": 60,
+      "Chennai": 230,
+      "Tirupattur": 45
+    },
+    "Kulithalai": {
+      "Karur": 40,
+      "Trichy": 65,
+      "Musiri": 30
+    },
+    "Kumbakonam": {
+      "Thanjavur": 40,
+      "Nagapattinam": 55,
+      "Trichy": 93,
+      "Mayiladuthurai": 30,
+      "Tiruvarur": 37,
+      "Chidambaram": 85
+    },
+    "Madurai": {
+      "Trichy": 137,
+      "Virudhunagar": 65,
+      "Dindigul": 64,
+      "Theni": 70,
+      "Ramanathapuram": 130,
+      "Tirunelveli": 159,
+      "Kanyakumari": 240,
+      "Sivaganga": 90,
+      "Tiruppur": 200,
+      "Coimbatore": 220,
+      "Pudukkottai": 150,
+      "Thoothukudi": 165,
+      "Aruppukkottai": 65,
+      "Paramakudi": 140,
+      "Chennai": 459
+    },
+    "Mayiladuthurai": {
+      "Kumbakonam": 30,
+      "Nagapattinam": 45,
+      "Thanjavur": 80,
+      "Trichy": 120,
+      "Chennai": 295
+    },
+    "Mettur": {
+      "Salem": 55,
+      "Dharmapuri": 80,
+      "Coimbatore": 135
+    },
+    "Musiri": {
+      "Trichy": 40,
+      "Karur": 55,
+      "Kulithalai": 30
+    },
+    "Nagapattinam": {
+      "Kumbakonam": 55,
+      "Thanjavur": 82,
+      "Trichy": 133,
+      "Mayiladuthurai": 45,
+      "Tiruvarur": 30,
+      "Chennai": 310,
+      "Chidambaram": 70,
+      "Cuddalore": 110
+    },
+    "Nagercoil": {
+      "Kanyakumari": 5,
+      "Tirunelveli": 80,
+      "Thoothukudi": 125,
+      "Padmanabhapuram": 25,
+      "Colachel": 22
+    },
+    "Namakkal": {
+      "Salem": 51,
+      "Erode": 57,
+      "Trichy": 105,
+      "Karur": 55,
+      "Coimbatore": 125,
+      "Dindigul": 140,
+      "Tiruppur": 115,
+      "Chennai": 370,
+      "Dharmapuri": 110
+    },
+    "Omalur": {
+      "Salem": 25,
+      "Coimbatore": 150,
+      "Erode": 70
+    },
+    "Ooty": {
+      "Coimbatore": 86,
+      "Mettupalayam": 40,
+      "Coonoor": 18,
+      "Gudalur": 55,
+      "Mysore": 135,
+      "Chennai": 560
+    },
+    "Padmanabhapuram": {
+      "Nagercoil": 25,
+      "Kanyakumari": 25,
+      "Colachel": 35,
+      "Tirunelveli": 100
+    },
+    "Palani": {
+      "Dindigul": 65,
+      "Coimbatore": 100,
+      "Tiruppur": 80,
+      "Erode": 110,
+      "Theni": 70,
+      "Udumalpet": 45
+    },
+    "Panruti": {
+      "Cuddalore": 20,
+      "Villupuram": 60,
+      "Pondicherry": 45
+    },
+    "Paramakudi": {
+      "Madurai": 140,
+      "Ramanathapuram": 60,
+      "Sivaganga": 70
+    },
+    "Perambalur": {
+      "Trichy": 51,
+      "Ariyalur": 38,
+      "Salem": 140,
+      "Chennai": 352,
+      "Namakkal": 85
+    },
+    "Pollachi": {
+      "Coimbatore": 40,
+      "Palani": 65,
+      "Valparai": 55,
+      "Tiruppur": 75
+    },
+    "Pondicherry": {
+      "Chennai": 170,
+      "Villupuram": 38,
+      "Cuddalore": 28,
+      "Chidambaram": 70,
+      "Panruti": 45
+    },
+    "Pudukkottai": {
+      "Trichy": 52,
+      "Madurai": 150,
+      "Thanjavur": 71,
+      "Sivaganga": 80,
+      "Chennai": 410,
+      "Ramanathapuram": 120
+    },
+    "Ramanathapuram": {
+      "Madurai": 130,
+      "Paramakudi": 60,
+      "Rameswaram": 55,
+      "Thoothukudi": 95,
+      "Pudukkottai": 120,
+      "Sivaganga": 85,
+      "Chennai": 562
+    },
+    "Rameswaram": {
+      "Ramanathapuram": 55,
+      "Madurai": 173,
+      "Mandapam": 16
+    },
+    "Ranipet": {
+      "Vellore": 25,
+      "Chennai": 110,
+      "Kanchipuram": 65,
+      "Tirupattur": 80,
+      "Tiruvannamalai": 75
+    },
+    "Salem": {
+      "Namakkal": 51,
+      "Erode": 60,
+      "Dharmapuri": 60,
+      "Krishnagiri": 95,
+      "Trichy": 153,
+      "Coimbatore": 160,
+      "Chennai": 335,
+      "Vellore": 175,
+      "Attur": 35,
+      "Mettur": 55,
+      "Omalur": 25,
+      "Tiruppur": 145,
+      "Yercaud": 30,
+      "Hosur": 155,
+      "Karur": 130
+    },
+    "Sathyamangalam": {
+      "Erode": 60,
+      "Gobichettipalayam": 40,
+      "Coimbatore": 90
+    },
+    "Sivaganga": {
+      "Madurai": 90,
+      "Karaikudi": 20,
+      "Ramanathapuram": 85,
+      "Pudukkottai": 80,
+      "Paramakudi": 70,
+      "Chennai": 500
+    },
+    "Sriperumbudur": {
+      "Kanchipuram": 25,
+      "Chennai": 45,
+      "Tiruvallur": 55
+    },
+    "Tambaram": {
+      "Chennai": 25,
+      "Chengalpattu": 20,
+      "Kanchipuram": 45
+    },
+    "Tenkasi": {
+      "Tirunelveli": 70,
+      "Shenkottai": 20,
+      "Kadayanallur": 30,
+      "Courtallam": 15,
+      "Kanyakumari": 120,
+      "Chennai": 650
+    },
+    "Thanjavur": {
+      "Trichy": 55,
+      "Kumbakonam": 40,
+      "Nagapattinam": 82,
+      "Tiruvarur": 51,
+      "Pudukkottai": 71,
+      "Papanasam": 20,
+      "Pattukkottai": 45,
+      "Mayiladuthurai": 80,
+      "Chennai": 350
+    },
+    "Theni": {
+      "Madurai": 70,
+      "Dindigul": 75,
+      "Coimbatore": 200,
+      "Palani": 70,
+      "Bodinayakkanur": 25,
+      "Uthamapalayam": 55
+    },
+    "Thoothukudi": {
+      "Tirunelveli": 38,
+      "Kanyakumari": 125,
+      "Virudhunagar": 100,
+      "Nagercoil": 125,
+      "Madurai": 165,
+      "Ramanathapuram": 95,
+      "Covilpatti": 42,
+      "Chennai": 634
+    },
+    "Tiruchirappalli": {
+      "Thanjavur": 55,
+      "Karur": 77,
+      "Perambalur": 51,
+      "Pudukkottai": 52,
+      "Madurai": 137,
+      "Salem": 153,
+      "Ariyalur": 55,
+      "Cuddalore": 160,
+      "Nagapattinam": 133,
+      "Dindigul": 100,
+      "Namakkal": 105,
+      "Tiruvarur": 87,
+      "Chennai": 322,
+      "Vellore": 280,
+      "Coimbatore": 210,
+      "Villupuram": 185,
+      "Kumbakonam": 93
+    },
+    "Tirunelveli": {
+      "Thoothukudi": 38,
+      "Kanyakumari": 93,
+      "Virudhunagar": 95,
+      "Nagercoil": 80,
+      "Palayamkottai": 5,
+      "Sankarankovil": 60,
+      "Tiruppur": 330,
+      "Madurai": 159,
+      "Tenkasi": 70,
+      "Chennai": 637
+    },
+    "Tirupattur": {
+      "Vellore": 65,
+      "Krishnagiri": 45,
+      "Vaniyambadi": 20,
+      "Jolarpettai": 15,
+      "Chennai": 200
+    },
+    "Tiruppur": {
+      "Coimbatore": 53,
+      "Erode": 60,
+      "Namakkal": 115,
+      "Salem": 145,
+      "Palani": 80,
+      "Dharapuram": 55,
+      "Tirunelveli": 330,
+      "Madurai": 200,
+      "Chennai": 455
+    },
+    "Tiruvallur": {
+      "Chennai": 45,
+      "Kanchipuram": 85,
+      "Sriperumbudur": 55,
+      "Ponneri": 35,
+      "Gummidipoondi": 48
+    },
+    "Tiruvannamalai": {
+      "Vellore": 80,
+      "Villupuram": 75,
+      "Chennai": 185,
+      "Ranipet": 75,
+      "Gingee": 55,
+      "Dharmapuri": 120
+    },
+    "Tiruvarur": {
+      "Thanjavur": 51,
+      "Nagapattinam": 30,
+      "Kumbakonam": 37,
+      "Trichy": 87,
+      "Mayiladuthurai": 35,
+      "Chennai": 310
+    },
+    "Trivandrum": {
+      "Kanyakumari": 90,
+      "Nagercoil": 88
+    },
+    "Vellore": {
+      "Chennai": 145,
+      "Ranipet": 25,
+      "Tiruvannamalai": 80,
+      "Krishnagiri": 95,
+      "Tirupattur": 65,
+      "Dharmapuri": 135,
+      "Salem": 175,
+      "Kanchipuram": 92,
+      "Katpadi": 15,
+      "Ambur": 45,
+      "Gudiyatham": 55
+    },
+    "Villupuram": {
+      "Chennai": 162,
+      "Pondicherry": 38,
+      "Cuddalore": 55,
+      "Tindivanam": 40,
+      "Tiruvannamalai": 75,
+      "Trichy": 185,
+      "Kallakurichi": 65,
+      "Chidambaram": 70
+    },
+    "Virudhunagar": {
+      "Madurai": 65,
+      "Thoothukudi": 100,
+      "Tirunelveli": 95,
+      "Sivakasi": 15,
+      "Sattur": 25,
+      "Rajapalayam": 45,
+      "Aruppukkottai": 35,
+      "Chennai": 530
+    },
+    "Yercaud": {
+      "Salem": 30,
+      "Attur": 55
+    },
+    "Ambur": {
+      "Vellore": 45,
+      "Vaniyambadi": 20,
+      "Tirupattur": 40,
+      "Gudiyatham": 30
+    },
+    "Ariyalur": {
+      "Trichy": 55,
+      "Perambalur": 38,
+      "Jayankondam": 45,
+      "Nagapattinam": 100,
+      "Chennai": 350
+    },
+    "Bodinayakkanur": {
+      "Theni": 25,
+      "Madurai": 90,
+      "Coimbatore": 160
+    },
+    "Coonoor": {
+      "Ooty": 18,
+      "Coimbatore": 72,
+      "Mettupalayam": 25
+    },
+    "Colachel": {
+      "Nagercoil": 22,
+      "Kanyakumari": 28
+    },
+    "Covilpatti": {
+      "Thoothukudi": 42,
+      "Tirunelveli": 65,
+      "Virudhunagar": 60
+    },
+    "Dharapuram": {
+      "Tiruppur": 55,
+      "Palani": 60,
+      "Karur": 70
+    },
+    "Gudiyatham": {
+      "Vellore": 55,
+      "Ambur": 30,
+      "Katpadi": 45
+    },
+    "Gudalur": {
+      "Ooty": 55,
+      "Coimbatore": 90,
+      "Mysore": 120
+    },
+    "Jayankondam": {
+      "Ariyalur": 45,
+      "Trichy": 90,
+      "Chidambaram": 75
+    },
+    "Jolarpettai": {
+      "Tirupattur": 15,
+      "Vaniyambadi": 35,
+      "Krishnagiri": 60
+    },
+    "Kadayanallur": {
+      "Tenkasi": 30,
+      "Sankarankovil": 30,
+      "Tirunelveli": 80
+    },
+    "Kallakurichi": {
+      "Villupuram": 65,
+      "Trichy": 200,
+      "Chennai": 215,
+      "Tiruvannamalai": 90
+    },
+    "Katpadi": {
+      "Vellore": 15,
+      "Ranipet": 30,
+      "Chennai": 135
+    },
+    "Karaikudi": {
+      "Sivaganga": 20,
+      "Madurai": 95,
+      "Pudukkottai": 70,
+      "Trichy": 100
+    },
+    "Mandapam": {
+      "Rameswaram": 16,
+      "Ramanathapuram": 45
+    },
+    "Marthandam": {
+      "Nagercoil": 25,
+      "Colachel": 30
+    },
+    "Mettupalayam": {
+      "Coimbatore": 45,
+      "Ooty": 40,
+      "Coonoor": 25
+    },
+    "Mysore": {
+      "Ooty": 135,
+      "Gudalur": 120,
+      "Bangalore": 145
+    },
+    "Palayamkottai": {
+      "Tirunelveli": 5,
+      "Thoothukudi": 38,
+      "Nagercoil": 80
+    },
+    "Papanasam": {
+      "Thanjavur": 20,
+      "Trichy": 70,
+      "Kumbakonam": 45
+    },
+    "Pattukkottai": {
+      "Thanjavur": 45,
+      "Nagapattinam": 65,
+      "Pudukkottai": 80
+    },
+    "Pollachi": {
+      "Coimbatore": 40,
+      "Palani": 65,
+      "Udumalpet": 40,
+      "Tiruppur": 75
+    },
+    "Sankarankovil": {
+      "Tirunelveli": 60,
+      "Tenkasi": 55,
+      "Kadayanallur": 30
+    },
+    "Sattur": {
+      "Virudhunagar": 25,
+      "Sivakasi": 20,
+      "Tirunelveli": 80
+    },
+    "Shenkottai": {
+      "Tenkasi": 20,
+      "Courtallam": 10,
+      "Tirunelveli": 85
+    },
+    "Sivakasi": {
+      "Virudhunagar": 15,
+      "Sattur": 20,
+      "Madurai": 75
+    },
+    "Rajapalayam": {
+      "Virudhunagar": 45,
+      "Sankarankovil": 40,
+      "Tirunelveli": 60
+    },
+    "Srivilliputhur": {
+      "Virudhunagar": 55,
+      "Madurai": 100,
+      "Rajapalayam": 55
+    },
+    "Tindivanam": {
+      "Villupuram": 40,
+      "Pondicherry": 60,
+      "Gingee": 35
+    },
+    "Udumalpet": {
+      "Tiruppur": 65,
+      "Palani": 45,
+      "Pollachi": 40
+    },
+    "Uthamapalayam": {
+      "Theni": 55,
+      "Madurai": 110,
+      "Bodinayakkanur": 40
+    },
+    "Valparai": {
+      "Pollachi": 55,
+      "Coimbatore": 90
+    },
+    "Vaniyambadi": {
+      "Ambur": 20,
+      "Tirupattur": 20,
+      "Jolarpettai": 35,
+      "Krishnagiri": 65
+    },
+    "Courtallam": {
+      "Shenkottai": 10,
+      "Tenkasi": 15,
+      "Tirunelveli": 85
+    },
+    "Gingee": {
+      "Tindivanam": 35,
+      "Villupuram": 48,
+      "Tiruvannamalai": 55
+    }
+  },
+  "cities": [
+    "Ambur",
+    "Arippukkottai",
+    "Ariyalur",
+    "Attur",
+    "Bangalore",
+    "Bhavani",
+    "Bodinayakkanur",
+    "Chengalpattu",
+    "Chennai",
+    "Chidambaram",
+    "Coimbatore",
+    "Colachel",
+    "Coonoor",
+    "Courtallam",
+    "Covilpatti",
+    "Cuddalore",
+    "Dharapuram",
+    "Dharmapuri",
+    "Dindigul",
+    "Erode",
+    "Gingee",
+    "Gobichettipalayam",
+    "Gudalur",
+    "Gudiyatham",
+    "Hosur",
+    "Jayankondam",
+    "Jolarpettai",
+    "Kadayanallur",
+    "Kallakurichi",
+    "Kanchipuram",
+    "Kanyakumari",
+    "Karaikudi",
+    "Karur",
+    "Katpadi",
+    "Krishnagiri",
+    "Kulithalai",
+    "Kumbakonam",
+    "Madurai",
+    "Mandapam",
+    "Marthandam",
+    "Mayiladuthurai",
+    "Mettupalayam",
+    "Mettur",
+    "Musiri",
+    "Mysore",
+    "Nagercoil",
+    "Nagapattinam",
+    "Namakkal",
+    "Omalur",
+    "Ooty",
+    "Padmanabhapuram",
+    "Palani",
+    "Palayamkottai",
+    "Panruti",
+    "Papanasam",
+    "Paramakudi",
+    "Pattukkottai",
+    "Perambalur",
+    "Pollachi",
+    "Pondicherry",
+    "Pudukkottai",
+    "Rajapalayam",
+    "Ramanathapuram",
+    "Rameswaram",
+    "Ranipet",
+    "Salem",
+    "Sankarankovil",
+    "Sattur",
+    "Sathyamangalam",
+    "Shenkottai",
+    "Sivaganga",
+    "Sivakasi",
+    "Sriperumbudur",
+    "Srivilliputhur",
+    "Tambaram",
+    "Tenkasi",
+    "Thanjavur",
+    "Theni",
+    "Thoothukudi",
+    "Tindivanam",
+    "Tiruchirappalli",
+    "Tirunelveli",
+    "Tirupattur",
+    "Tiruppur",
+    "Tiruvallur",
+    "Tiruvannamalai",
+    "Tiruvarur",
+    "Trivandrum",
+    "Udumalpet",
+    "Uthamapalayam",
+    "Valparai",
+    "Vaniyambadi",
+    "Vellore",
+    "Villupuram",
+    "Virudhunagar",
+    "Yercaud"
+  ]
+}

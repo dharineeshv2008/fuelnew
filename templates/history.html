@@ -2,38 +2,82 @@
 
 {% block content %}
 <div class="animate-fade-up max-w-6xl mx-auto" id="page-history">
-    <div class="flex flex-col md:flex-row justify-between items-start mb-10 gap-4 px-2">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
         <div>
-            <h1 class="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Intelligence Archive</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Track, filter, and analyze your historic fuel telemetry.</p>
+            <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Intelligence Ledger</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Query, filter, and export your historical refueling and route computations.</p>
         </div>
-        <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest">
-            Data Repository
+        <div class="flex gap-2 items-center">
+            <button onclick="exportCSV()" class="fw-btn fw-btn-outline text-sm" style="height:36px;padding:0 14px;">
+                <i class="fa-solid fa-download mr-1"></i> Export CSV
+            </button>
+            <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest">
+                Telemetry Database
+            </div>
         </div>
     </div>
 
-    <style>
-        .history-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            justify-content: center;
-            align-items: start;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-    </style>
+    <!-- Search and Multi-Filter Panel -->
+    <div class="fw-card mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <!-- Search Input -->
+            <div class="md:col-span-4 relative">
+                <label class="fw-label">Search Ledger</label>
+                <div class="relative">
+                    <input type="text" id="searchQuery" class="fw-input pl-10" placeholder="Search comments, values...">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            <!-- Vehicle Filter -->
+            <div class="md:col-span-3">
+                <label class="fw-label">Filter Vehicle</label>
+                <select id="vehicleFilterSelect" class="fw-select">
+                    <option value="">— All Vehicles —</option>
+                    {% for v in vehicles %}
+                    <option value="{{ v.id }}">{{ v.vehicle_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Fuel Type Filter -->
+            <div class="md:col-span-2">
+                <label class="fw-label">Fuel Type</label>
+                <select id="fuelFilterSelect" class="fw-select">
+                    <option value="">— All —</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="EV">Electric</option>
+                    <option value="CNG">CNG</option>
+                    <option value="Hybrid">Hybrid</option>
+                </select>
+            </div>
+            <!-- Date Filters -->
+            <div class="md:col-span-3 grid grid-cols-2 gap-2">
+                <div>
+                    <label class="fw-label">From</label>
+                    <input type="date" id="dateStartInput" class="fw-input px-2 text-xs">
+                </div>
+                <div>
+                    <label class="fw-label">To</label>
+                    <input type="date" id="dateEndInput" class="fw-input px-2 text-xs">
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="history-container px-2">
-        <!-- New Log Entry -->
-        <div class="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm">
-                <div class="flex items-center gap-3 mb-10 pb-6 border-b border-gray-100 dark:border-white/5">
+    <!-- Ledger Tabs Container -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2 lg:items-start pb-12">
+        
+        <!-- Left Side: Log Refuel Mini Form -->
+        <div class="lg:col-span-4">
+            <div class="fw-card">
+                <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
                     <div class="w-1.5 h-6 bg-success rounded-full"></div>
-                    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Log Refuel</h3>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Log Refuel</h3>
                 </div>
 
                 {% from "components.html" import InputField, SelectField %}
-                <form method="POST" action="{{ url_for('history') }}" class="space-y-1">
+                <form method="POST" action="{{ url_for('history') }}" class="space-y-4">
                     <input type="hidden" name="action" value="add_log">
                     
                     {% set v_options = [('', '— Select a Vehicle —')] %}
@@ -42,135 +86,263 @@
                         {% set _ = v_options.append((v.id, label)) %}
                     {% endfor %}
 
-                    {{ SelectField('vehicle', 'Deployed Asset', v_options) }}
+                    {{ SelectField('vehicle', 'Active Vehicle', v_options) }}
                     
                     <div class="grid grid-cols-2 gap-4">
-                        {{ InputField('litres', 'Fuel Volume', type='number', step='0.01', placeholder='45.0', required=true) }}
-                        {{ InputField('price', 'Unit Cost', type='number', step='0.001', placeholder='1.85', required=true) }}
+                        {{ InputField('litres', 'Fuel Volume', type='number', step='0.01', placeholder='e.g. 40.0', required=true) }}
+                        {{ InputField('price', 'Unit Cost', type='number', step='0.001', placeholder='e.g. 100.0', required=true) }}
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
-                        {{ InputField('odometer', 'Odometer', type='number', placeholder='12550', required=true) }}
-                        {{ InputField('date', 'Timestamp', type='date', value=today, required=true) }}
+                        {{ InputField('odometer', 'Odometer (km)', type='number', placeholder='e.g. 12000', required=true) }}
+                        {{ InputField('date', 'Log Date', type='date', value=now.strftime('%Y-%m-%d'), required=true) }}
                     </div>
 
-                    {{ InputField('notes', 'Intelligence Notes', placeholder='e.g. Shell Premium vPower') }}
+                    {{ InputField('notes', 'Refuel Notes', placeholder='e.g. Shell Premium vPower') }}
 
-                    <button type="submit" class="fw-btn fw-btn-primary full mt-6">
-                        <i class="fa-solid fa-plus-circle mr-2 opacity-50"></i> Register Refuel Event
+                    <button type="submit" class="fw-btn fw-btn-primary w-full text-sm">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> Save Refuel Event
                     </button>
                 </form>
             </div>
-
         </div>
 
-        <!-- Fuel Logs (Refuel Ledger) -->
-        <div class="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm">
-            <div class="flex items-center justify-between mb-10 pb-6 border-b border-gray-100 dark:border-white/5">
-                <div class="flex items-center gap-3">
-                    <div class="w-1.5 h-6 bg-success rounded-full"></div>
-                    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Refuel Ledger</h3>
-                </div>
+        <!-- Right Side: Tables -->
+        <div class="lg:col-span-8 space-y-6">
+            <!-- Tabs Navigation -->
+            <div class="flex border-b border-gray-200 dark:border-white/10 gap-6">
+                <button type="button" id="tabRefuelBtn" class="py-3 px-1 font-bold text-sm border-b-2 border-primary text-primary transition-all focus:outline-none">
+                    Refuel Ledger
+                </button>
+                <button type="button" id="tabTripBtn" class="py-3 px-1 font-bold text-sm border-b-2 border-transparent text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all focus:outline-none">
+                    Saved Computations
+                </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% if logs %}
-                    {% for log in logs|reverse %}
-                    <div class="group flex flex-col justify-between p-6 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/[0.05] hover:shadow-sm transition-all animate-fade-up" style="animation-delay: {{ loop.index * 0.05 }}s">
-                        <div class="flex flex-col gap-4 mb-4">
-                            <div class="w-12 h-12 rounded-2xl bg-success/10 flex items-center justify-center text-success text-xl shadow-inner group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-gas-pump"></i>
-                            </div>
-                            <div>
-                                <span class="block text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ log.litres }}L</span>
-                                <span class="block text-sm font-bold text-gray-500 uppercase tracking-tight mb-2">@ {{ format_currency(log.price) }}/L</span>
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                                    <span class="text-xs font-bold text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-calendar text-[10px]"></i> {{ log.date }}</span>
-                                    <span class="text-xs font-bold text-gray-500 flex items-center gap-1.5"><i class="fa-solid fa-gauge-high text-[10px]"></i> {{ log.odometer|round|int }} KM</span>
-                                </div>
-                                {% if log.notes %}
-                                <div class="mt-3 flex items-start gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-white/5 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 w-fit">
-                                    <i class="fa-solid fa-comment-dots mt-0.5 text-primary/50"></i>
-                                    <span>{{ log.notes }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between border-t border-gray-100 dark:border-white/5 pt-4 mt-4">
-                            <div class="text-left">
-                                <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Total Expense</span>
-                                <span class="block text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-success to-emerald-600">{{ format_currency(log.total_cost) }}</span>
-                            </div>
-                            <form method="POST" action="{{ url_for('history') }}" class="flex items-center">
-                                <input type="hidden" name="action" value="delete_log">
-                                <input type="hidden" name="log_id" value="{{ log.id }}">
-                                <button type="submit" class="w-10 h-10 rounded-xl bg-red-500/[0.03] text-red-500/30 hover:text-red-500 hover:bg-red-500/10 active:scale-95 transition-all outline-none" title="Purge Record">
-                                    <i class="fa-solid fa-trash-can text-sm"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="py-20 text-center group border-2 border-dashed border-gray-100 dark:border-white/5 rounded-[2.5rem]">
-                        <div class="w-24 h-24 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mx-auto mb-6 transition-transform group-hover:scale-110">
-                            <i class="fa-solid fa-box-open text-4xl text-gray-200 dark:text-gray-700"></i>
-                        </div>
-                        <h4 class="text-xl font-bold text-gray-400 mb-2 tracking-tight">Archive Empty</h4>
-                        <p class="text-sm text-gray-500 font-medium max-w-[240px] mx-auto">No refueling records exist in the repository metadata.</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Saved Trip Computations -->
-        <div class="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm">
-            <div class="flex items-center gap-3 mb-10 pb-6 border-b border-gray-100 dark:border-white/5">
-                <div class="w-1.5 h-6 bg-primary rounded-full"></div>
-                <h3 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Saved Computations</h3>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% if trips %}
-                    {% for trip in trips|reverse %}
-                    <div class="group p-6 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/[0.05] hover:shadow-sm transition-all animate-fade-up flex flex-col justify-between" style="animation-delay: {{ loop.index * 0.1 }}s">
-                        <div class="flex items-start justify-between gap-4 mb-4">
-                            <div class="flex flex-col gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xl shadow-inner group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-calculator"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ trip.distance|round|int }} KM</span>
+            <!-- Tab 1: Refuel Ledger Table -->
+            <div id="tabRefuelContent" class="fw-table-container">
+                <table class="fw-table" id="fuelTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Vehicle</th>
+                            <th>Fuel Added</th>
+                            <th>Unit Cost</th>
+                            <th>Total Cost</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs %}
+                            {% for log in logs|reverse %}
+                            {% set vehicle = vmap.get(log.vehicle_id) %}
+                            {% set unit = 'kWh' if vehicle and vehicle.fuel_type == 'EV' else 'L' %}
+                            {% set fuel_type = vehicle.fuel_type if vehicle else 'Petrol' %}
+                            <tr data-vehicle="{{ log.vehicle_id or '' }}" data-fuel-type="{{ fuel_type }}" data-date="{{ log.date }}">
+                                <td class="font-semibold">{{ log.date }}</td>
+                                <td class="font-bold text-gray-900 dark:text-white">{{ vehicle.vehicle_name if vehicle else 'Generic Vehicle' }}</td>
+                                <td>{{ log.litres|round(1) }} <span class="text-xs font-semibold text-gray-400">{{ unit }}</span></td>
+                                <td>{{ format_currency(log.price) }}/{{ unit }}</td>
+                                <td class="font-bold text-primary">{{ format_currency(log.total_cost) }}</td>
+                                <td class="text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        {% if log.notes %}
+                                        <button type="button" onclick="showDetailsModal('{{ log.notes | replace("\'", "\\'") }}')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/20 transition-all" title="View Notes">
+                                            <i class="fa-solid fa-comment-dots text-xs"></i>
+                                        </button>
+                                        {% endif %}
+                                        <form method="POST" action="{{ url_for('history') }}" class="inline">
+                                            <input type="hidden" name="action" value="delete_log">
+                                            <input type="hidden" name="log_id" value="{{ log.id }}">
+                                            <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all" title="Delete Entry">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                        </form>
                                     </div>
-                                    <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-car-side mr-1 opacity-50"></i> {{ vmap.get(trip.vehicle_id, 'Generic Unit') }}</span>
-                                    <div class="mt-4 border-t border-gray-100 dark:border-white/5 pt-4">
-                                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Fiscal Outcome</span>
-                                        <span class="text-2xl font-black text-primary tracking-tight">{{ format_currency(trip.total_cost) }}</span>
-                                    </div>
-                                </div>
-                        <div class="flex justify-end mt-4">
-                            <form method="POST" action="{{ url_for('history') }}">
-                                <input type="hidden" name="action" value="delete_trip">
-                                <input type="hidden" name="trip_id" value="{{ trip.id }}">
-                                <button type="submit" class="w-8 h-8 rounded-lg text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-500/5 transition-all outline-none">
-                                    <i class="fa-solid fa-xmark text-sm"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="py-12 text-center group border border-dashed border-gray-100 dark:border-white/5 rounded-3xl opacity-60">
-                        <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mx-auto mb-4">
-                            <i class="fa-solid fa-bookmark text-2xl text-gray-200 dark:text-gray-700"></i>
-                        </div>
-                        <h4 class="text-base font-bold text-gray-400 mb-1 tracking-tight">No Saved Metrics</h4>
-                        <p class="text-[11px] text-gray-500 font-medium px-6">Archives contain no persistent computational telemetry.</p>
-                    </div>
-                {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-10 font-semibold text-gray-400">No refuel logs exist in the repository metadata.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 2: Saved Calculations Table -->
+            <div id="tabTripContent" class="fw-table-container hidden">
+                <table class="fw-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Vehicle</th>
+                            <th>Distance</th>
+                            <th>Trip Cost</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if trips %}
+                            {% for trip in trips|reverse %}
+                            {% set vehicle = vmap.get(trip.vehicle_id) %}
+                            {% set fuel_type = vehicle.fuel_type if vehicle else 'Petrol' %}
+                            {% set t_date = trip.created_at.split('T')[0] if trip.created_at else '' %}
+                            <tr data-vehicle="{{ trip.vehicle_id or '' }}" data-fuel-type="{{ fuel_type }}" data-date="{{ t_date }}">
+                                <td class="font-semibold">{{ t_date }}</td>
+                                <td class="font-bold text-gray-900 dark:text-white">{{ vehicle.vehicle_name if vehicle else 'Generic Vehicle' }}</td>
+                                <td>{{ trip.distance|round|int }} <span class="text-xs font-semibold text-gray-400">KM</span></td>
+                                <td class="font-bold text-primary">{{ format_currency(trip.total_cost) }}</td>
+                                <td class="text-right">
+                                    <form method="POST" action="{{ url_for('history') }}" class="inline">
+                                        <input type="hidden" name="action" value="delete_trip">
+                                        <input type="hidden" name="trip_id" value="{{ trip.id }}">
+                                        <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all" title="Remove Entry">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-10 font-semibold text-gray-400">No computational telemetry histories recorded.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10000] hidden items-center justify-center p-4">
+    <div class="fw-card max-w-md w-full bg-surface border border-color p-6 relative">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-file-invoice text-primary"></i> Intelligence Notes
+        </h3>
+        <p id="modalContentText" class="text-sm text-gray-600 dark:text-gray-300 font-medium mb-6 leading-relaxed"></p>
+        <button type="button" onclick="closeDetailsModal()" class="fw-btn fw-btn-primary w-full text-xs">
+            Dismiss Details
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Tab switching logic
+    const tabRefuelBtn = document.getElementById('tabRefuelBtn');
+    const tabTripBtn = document.getElementById('tabTripBtn');
+    const tabRefuelContent = document.getElementById('tabRefuelContent');
+    const tabTripContent = document.getElementById('tabTripContent');
+
+    if (tabRefuelBtn && tabTripBtn) {
+        tabRefuelBtn.addEventListener('click', () => {
+            tabRefuelBtn.classList.add('border-primary', 'text-primary');
+            tabRefuelBtn.classList.remove('border-transparent', 'text-gray-400');
+            tabTripBtn.classList.remove('border-primary', 'text-primary');
+            tabTripBtn.classList.add('border-transparent', 'text-gray-400');
+            
+            tabRefuelContent.classList.remove('hidden');
+            tabTripContent.classList.add('hidden');
+            applyFilters();
+        });
+
+        tabTripBtn.addEventListener('click', () => {
+            tabTripBtn.classList.add('border-primary', 'text-primary');
+            tabTripBtn.classList.remove('border-transparent', 'text-gray-400');
+            tabRefuelBtn.classList.remove('border-primary', 'text-primary');
+            tabRefuelBtn.classList.add('border-transparent', 'text-gray-400');
+            
+            tabTripContent.classList.remove('hidden');
+            tabRefuelContent.classList.add('hidden');
+            applyFilters();
+        });
+    }
+
+    // 2. Client-side Search and Filters
+    const searchInput = document.getElementById('searchQuery');
+    const vehicleFilter = document.getElementById('vehicleFilterSelect');
+    const fuelFilter = document.getElementById('fuelFilterSelect');
+    const dateStart = document.getElementById('dateStartInput');
+    const dateEnd = document.getElementById('dateEndInput');
+
+    function applyFilters() {
+        const query = searchInput.value.toLowerCase();
+        const vehicle = vehicleFilter.value;
+        const fuel = fuelFilter.value;
+        const start = dateStart.value;
+        const end = dateEnd.value;
+
+        document.querySelectorAll('tbody tr').forEach(row => {
+            // Check query against row contents
+            const rowText = row.textContent.toLowerCase();
+            const rowVehicle = row.getAttribute('data-vehicle') || '';
+            const rowFuel = row.getAttribute('data-fuel-type') || '';
+            const rowDate = row.getAttribute('data-date') || '';
+
+            let match = true;
+
+            if (query && !rowText.includes(query)) match = false;
+            if (vehicle && rowVehicle !== vehicle) match = false;
+            if (fuel && rowFuel !== fuel) match = false;
+            if (start && rowDate < start) match = false;
+            if (end && rowDate > end) match = false;
+
+            row.style.display = match ? '' : 'none';
+        });
+    }
+
+    [searchInput, vehicleFilter, fuelFilter, dateStart, dateEnd].forEach(el => {
+        if(el) {
+            el.addEventListener('input', applyFilters);
+            el.addEventListener('change', applyFilters);
+        }
+    });
+
+    // Modal details handlers
+    window.showDetailsModal = function(text) {
+        const modal = document.getElementById('detailsModal');
+        const textNode = document.getElementById('modalContentText');
+        if (modal && textNode) {
+            textNode.innerText = text;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    };
+
+    window.closeDetailsModal = function() {
+        const modal = document.getElementById('detailsModal');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    };
+});
+
+function exportCSV() {
+    const rows = [['Date', 'Vehicle', 'Fuel Added', 'Unit Price', 'Total Cost', 'Notes']];
+    document.querySelectorAll('#fuelTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            rows.push([
+                cells[0]?.textContent.trim() || '',
+                cells[1]?.textContent.trim() || '',
+                cells[2]?.textContent.trim() || '',
+                cells[3]?.textContent.trim() || '',
+                cells[4]?.textContent.trim() || '',
+                cells[5]?.textContent.trim() || ''
+            ]);
+        }
+    });
+    const csv = rows.map(r => r.map(c => '"' + c.replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fuelwise_history_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+}
+</script>
 {% endblock content %}

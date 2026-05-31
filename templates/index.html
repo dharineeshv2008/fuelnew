@@ -2,80 +2,251 @@
 
 {% block content %}
 <div class="animate-fade-up max-w-6xl mx-auto" id="page-dashboard">
-    <div class="flex flex-col md:flex-row justify-between items-start mb-10 gap-4 px-2">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
         <div>
-            <h1 class="text-3xl font-black tracking-tight text-gray-900 dark:text-white">SaaS Command Center</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Welcome back, {{ user.name.split(' ')[0] if user else 'Commander' }}! Here is your fleet intelligence.</p>
+            <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Fleet Control Center</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Welcome back, {{ user.name.split(' ')[0] if user else 'Commander' }}! Here is your telemetry overview.</p>
         </div>
         <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest">
-            Smart Fuel. Smarter Savings.
+            Active Analytics
         </div>
     </div>
 
-    <!-- Stat Cards -->
+    <!-- Premium Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 px-2">
-        <div class="group bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 transition-all">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-xl shadow-inner group-hover:rotate-6 transition-transform">
+        <!-- Card 1: Total Spent -->
+        <div class="fw-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-caption">Total Spent</span>
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-lg">
                     <i class="fa-solid fa-wallet"></i>
                 </div>
-                <div>
-                    <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Total Spent</span>
-                    <span class="block text-2xl font-black text-gray-900 dark:text-white">{{ format_currency(total_spent) }}</span>
-                </div>
+            </div>
+            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ format_currency(total_spent) }}</h2>
+            <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
+                <span class="text-success flex items-center"><i class="fa-solid fa-arrow-trend-up mr-0.5"></i> Refuel Ledger</span>
+                <span>telemetry synced</span>
             </div>
         </div>
 
-        <div class="group bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-success/5 hover:border-success/30 transition-all">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center text-success text-xl shadow-inner group-hover:rotate-6 transition-transform">
+        <!-- Card 2: Total Distance -->
+        <div class="fw-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-caption">Total Distance</span>
+                <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 text-lg">
+                    <i class="fa-solid fa-route"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ total_distance|round|int }} <span class="text-base font-semibold text-gray-400">KM</span></h2>
+            <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
+                <span class="text-success flex items-center"><i class="fa-solid fa-chart-line mr-0.5"></i> Trip Planner</span>
+                <span>metrics integrated</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Fuel Processed -->
+        <div class="fw-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-caption">Average Cost/KM</span>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 text-lg">
+                    <i class="fa-solid fa-gas-pump"></i>
+                </div>
+            </div>
+            {% set avg_cost = (total_spent / total_distance) if total_distance > 0 else 0 %}
+            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ format_currency(avg_cost) }}</h2>
+            <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
+                <span class="text-amber-500 flex items-center"><i class="fa-solid fa-gauge-high mr-0.5"></i> Active Unit</span>
+                <span>efficiency index</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Managed Fleet -->
+        <div class="fw-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-caption">Managed Fleet</span>
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-lg">
+                    <i class="fa-solid fa-car-side"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ vehicle_count }} <span class="text-base font-semibold text-gray-400">Vehicles</span></h2>
+            <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
+                <span class="text-primary flex items-center"><i class="fa-solid fa-shield mr-0.5"></i> Active Fleet</span>
+                <span>profiles loaded</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="mb-10 px-2">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Quick Command Actions</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="{{ url_for('vehicles') }}" class="fw-card hover:shadow-lg transition-all hover:border-primary/30 flex flex-row items-center gap-4 p-5 cursor-pointer">
+                <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 dark:text-white">Add Vehicle</h4>
+                    <p class="text-xs text-gray-400">Expand your active fleet</p>
+                </div>
+            </a>
+            <a href="{{ url_for('calculator') }}" class="fw-card hover:shadow-lg transition-all hover:border-primary/30 flex flex-row items-center gap-4 p-5 cursor-pointer">
+                <div class="w-12 h-12 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 dark:text-white">Calculate Trip</h4>
+                    <p class="text-xs text-gray-400">Estimate fuel expenditures</p>
+                </div>
+            </a>
+            <a href="{{ url_for('trip_planner') }}" class="fw-card hover:shadow-lg transition-all hover:border-primary/30 flex flex-row items-center gap-4 p-5 cursor-pointer">
+                <div class="w-12 h-12 rounded-xl bg-success/10 text-success flex items-center justify-center text-xl">
                     <i class="fa-solid fa-route"></i>
                 </div>
                 <div>
-                    <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Total Distance</span>
-                    <span class="block text-2xl font-black text-gray-900 dark:text-white">{{ total_distance|round|int }}<span class="text-xs font-bold text-gray-400 ml-1">KM</span></span>
+                    <h4 class="text-sm font-bold text-gray-900 dark:text-white">Plan Route</h4>
+                    <p class="text-xs text-gray-400">Calculate stops & waypoints</p>
                 </div>
-            </div>
-        </div>
-
-        <div class="group bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-warning/5 hover:border-warning/30 transition-all">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-warning/10 flex items-center justify-center text-warning text-xl shadow-inner group-hover:rotate-6 transition-transform">
-                    <i class="fa-solid fa-gas-pump"></i>
-                </div>
-                <div>
-                    <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Fuel Processed</span>
-                    <span class="block text-2xl font-black text-gray-900 dark:text-white">{{ total_fuel|round(1) }}<span class="text-xs font-bold text-gray-400 ml-1">L</span></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="group bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-secondary/5 hover:border-secondary/30 transition-all">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary text-xl shadow-inner group-hover:rotate-6 transition-transform">
-                    <i class="fa-solid fa-car-side"></i>
-                </div>
-                <div>
-                    <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Managed Fleet</span>
-                    <span class="block text-2xl font-black text-gray-900 dark:text-white">{{ vehicle_count }}</span>
-                </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 px-2 lg:items-start">
+    <!-- Charts Section: Real Data Only -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10 px-2">
+        <!-- Chart 1: Monthly Spending Trend (Real Data) -->
+        <div class="lg:col-span-8 fw-card">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400">Spending Analytics</h3>
+                    <h4 class="text-lg font-bold">Monthly Spending Trend</h4>
+                </div>
+                {% if monthly_spend_data %}
+                <div class="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20">
+                    Live Data
+                </div>
+                {% endif %}
+            </div>
+
+            {% if monthly_spend_data %}
+            <div class="chart-container" id="spendChartContainer">
+                <svg id="spendChart" viewBox="0 0 600 200" class="w-full h-full" preserveAspectRatio="none"></svg>
+            </div>
+            <div id="spendChartLabels" class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100 dark:border-white/5 text-xs text-gray-400 font-semibold px-2">
+            </div>
+            {% else %}
+            <div class="fw-empty-state">
+                <div class="fw-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <h4 class="fw-empty-title">No Spending Data Yet</h4>
+                <p class="fw-empty-text">Log your first fuel refuel to start generating monthly spending insights.</p>
+                <a href="{{ url_for('history') }}" class="fw-btn fw-btn-primary">
+                    <i class="fa-solid fa-plus mr-1"></i> Log First Refuel
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Chart 2: Fleet Fuel Mix (Real Data from Vehicles) -->
+        <div class="lg:col-span-4 fw-card">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400">Fleet Composition</h3>
+                    <h4 class="text-lg font-bold">Fuel Mix Profile</h4>
+                </div>
+            </div>
+
+            {% if fuel_mix_data and total_vehicles > 0 %}
+            <div class="space-y-5">
+                {% set fuel_icons = {'Petrol': 'fa-gas-pump', 'Diesel': 'fa-oil-can', 'EV': 'fa-bolt', 'CNG': 'fa-leaf', 'Hybrid': 'fa-car-side'} %}
+                {% for fuel_type, count in fuel_mix_data.items() %}
+                {% set pct = ((count / total_vehicles) * 100) | round | int %}
+                <div>
+                    <div class="flex justify-between text-xs font-bold mb-1.5">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid {{ fuel_icons.get(fuel_type, 'fa-gas-pump') }} text-primary"></i>
+                            {{ fuel_type }}
+                        </span>
+                        <span>{{ pct }}%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-primary rounded-full transition-all duration-700" style="width: {{ pct }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="mt-5 text-xs text-gray-400 font-medium">Based on {{ total_vehicles }} registered vehicle{{ 's' if total_vehicles != 1 else '' }}.</p>
+            {% else %}
+            <div class="fw-empty-state">
+                <div class="fw-empty-icon"><i class="fa-solid fa-car-side"></i></div>
+                <h4 class="fw-empty-title">No Fleet Data</h4>
+                <p class="fw-empty-text">Add vehicles to see the fuel type distribution across your fleet.</p>
+                <a href="{{ url_for('vehicles') }}" class="fw-btn fw-btn-primary">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Vehicle
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Maintenance Alerts -->
+    {% set maint_logs = session.get('maintenance_logs', []) %}
+    {% if maint_logs %}
+    <div class="px-2 mb-8">
+        {% set has_alert = false %}
+        {% for log in maint_logs %}
+            {% if log.get('status') == 'overdue' and not has_alert %}
+            {% set has_alert = true %}
+            <div class="fw-card mb-4" style="padding:20px; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.03);">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center text-red-500">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-red-500 text-sm">Maintenance Items Overdue</h4>
+                        <p class="text-xs text-gray-400">Review your fleet maintenance schedule</p>
+                    </div>
+                    <a href="{{ url_for('maintenance') }}" class="fw-btn fw-btn-outline text-xs" style="height:36px;padding:0 12px;">
+                        Review <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+        {% for log in maint_logs %}
+            {% if log.get('status') == 'due_soon' and not has_alert %}
+            {% set has_alert = true %}
+            <div class="fw-card" style="padding:20px; border-color: rgba(234,179,8,0.3); background: rgba(234,179,8,0.03);">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-yellow-500/15 flex items-center justify-center text-yellow-500">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-yellow-500 text-sm">Upcoming Maintenance</h4>
+                        <p class="text-xs text-gray-400">Some service items are due soon</p>
+                    </div>
+                    <a href="{{ url_for('maintenance') }}" class="fw-btn fw-btn-outline text-xs" style="height:36px;padding:0 12px;">
+                        View <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Stream & Pro Tip Split -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2 lg:items-start pb-8">
         <!-- Recent Activity Stream -->
-        <div class="lg:col-span-7 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm">
-            <div class="flex items-center gap-3 mb-8">
+        <div class="lg:col-span-7 fw-card">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
                 <div class="w-1.5 h-6 bg-primary rounded-full"></div>
-                <h3 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Activity Stream</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Telemetry Stream</h3>
             </div>
             
             <div class="space-y-4">
                 {% if recent_activity %}
                     {% for item in recent_activity %}
-                    <div class="group flex items-center gap-5 p-4 rounded-2xl bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/[0.05] hover:shadow-sm transition-all animate-fade-up" style="animation-delay: {{ loop.index * 0.1 }}s">
-                        <div class="w-11 h-11 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">
+                    <div class="group flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/[0.05] hover:shadow-sm transition-all animate-fade-up" style="animation-delay: {{ loop.index * 0.1 }}s">
+                        <div class="w-11 h-11 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors">
                             <i class="fa-solid {{ item.icon }}"></i>
                         </div>
                         <div class="flex-1">
@@ -90,21 +261,25 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="py-12 text-center group">
-                        <div class="w-20 h-20 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-6 transition-transform group-hover:scale-110">
-                            <i class="fa-solid fa-satellite-dish text-3xl text-gray-300 dark:text-gray-600"></i>
+                    <!-- Empty State for Activity Feed -->
+                    <div class="fw-empty-state">
+                        <div class="fw-empty-icon">
+                            <i class="fa-solid fa-satellite-dish"></i>
                         </div>
-                        <h4 class="text-lg font-bold text-gray-400 mb-2">Awaiting Telemetry Sync</h4>
-                        <p class="text-sm text-gray-500 font-medium max-w-[200px] mx-auto">Compute your first log to start the activity stream.</p>
+                        <h4 class="fw-empty-title">Awaiting Telemetry Sync</h4>
+                        <p class="fw-empty-text">Compute a route or log a refuel to generate active activity stream logs.</p>
+                        <a href="{{ url_for('calculator') }}" class="fw-btn fw-btn-primary">
+                            <i class="fa-solid fa-bolt mr-1"></i> Calculate Trip Now
+                        </a>
                     </div>
                 {% endif %}
             </div>
         </div>
 
         <!-- Sidebar Widgets -->
-        <div class="lg:col-span-5 space-y-8">
+        <div class="lg:col-span-5 space-y-6">
             <!-- Strategic Insight -->
-            <div class="relative overflow-hidden bg-gradient-to-br from-primary to-secondary p-8 rounded-[2.5rem] shadow-xl shadow-primary/20 group">
+            <div class="relative overflow-hidden bg-gradient-to-br from-primary to-secondary p-8 rounded-3xl shadow-xl shadow-primary/20 group">
                 <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
                 <div class="relative z-10">
                     <h3 class="text-white/80 text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
@@ -112,16 +287,16 @@
                     </h3>
                     <p class="text-2xl font-black text-white leading-tight mb-8">{{ insight }}</p>
                     <a href="{{ url_for('history') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg">
-                        <i class="fa-solid fa-layer-group"></i> Master Report
+                        <i class="fa-solid fa-layer-group"></i> Master Ledger
                     </a>
                 </div>
             </div>
 
             <!-- Pro Tip -->
-            <div class="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm">
+            <div class="fw-card">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-1.5 h-6 bg-secondary rounded-full"></div>
-                    <h4 class="text-xs font-black uppercase tracking-widest text-secondary">Operational Protocol</h4>
+                    <h4 class="text-xs font-black uppercase tracking-widest text-secondary">Eco-Driving Protocol</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-300 font-medium leading-relaxed">{{ tip }}</p>
                 <div class="mt-8 pt-8 border-t border-gray-100 dark:border-white/5">
@@ -136,4 +311,104 @@
         </div>
     </div>
 </div>
+
+<script>
+// Real Monthly Spending Chart Renderer
+(function () {
+    const rawData = {{ monthly_spend_data | tojson }};
+    if (!rawData || rawData.length === 0) return;
+
+    const svg = document.getElementById('spendChart');
+    const labelsEl = document.getElementById('spendChartLabels');
+    if (!svg || !labelsEl) return;
+
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const values = rawData.map(d => d[1]);
+    const labels = rawData.map(d => {
+        const parts = d[0].split('-');
+        return MONTH_NAMES[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
+    });
+
+    const maxVal = Math.max(...values, 1);
+    const n = values.length;
+    const W = 600, H = 200;
+    const padL = 48, padR = 16, padT = 16, padB = 24;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    const ns = 'http://www.w3.org/2000/svg';
+
+    // Gradient definition
+    const defs = document.createElementNS(ns, 'defs');
+    defs.innerHTML = `
+        <linearGradient id="realSpendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#18A06A" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="#18A06A" stop-opacity="0"/>
+        </linearGradient>`;
+    svg.appendChild(defs);
+
+    // Grid lines + y-axis labels
+    [0.25, 0.5, 0.75, 1.0].forEach(t => {
+        const y = padT + chartH * (1 - t);
+        const line = document.createElementNS(ns, 'line');
+        line.setAttribute('x1', padL); line.setAttribute('y1', y);
+        line.setAttribute('x2', W - padR); line.setAttribute('y2', y);
+        line.setAttribute('stroke', 'var(--border-color)');
+        line.setAttribute('stroke-dasharray', '4');
+        svg.appendChild(line);
+
+        const val = maxVal * t;
+        const label = document.createElementNS(ns, 'text');
+        label.setAttribute('x', padL - 4); label.setAttribute('y', y + 4);
+        label.setAttribute('text-anchor', 'end');
+        label.setAttribute('fill', 'var(--text-muted)');
+        label.setAttribute('font-size', '9');
+        label.setAttribute('font-weight', '600');
+        label.textContent = val >= 1000 ? (val / 1000).toFixed(1) + 'k' : Math.round(val).toString();
+        svg.appendChild(label);
+    });
+
+    // Compute point positions
+    const pts = values.map((v, i) => [
+        padL + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW),
+        padT + chartH - (v / maxVal) * chartH
+    ]);
+
+    // Build smooth cubic bezier path
+    let pathD = `M ${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const cx = (pts[i][0] + pts[i + 1][0]) / 2;
+        pathD += ` C ${cx} ${pts[i][1]}, ${cx} ${pts[i + 1][1]}, ${pts[i + 1][0]} ${pts[i + 1][1]}`;
+    }
+    const areaD = pathD + ` L ${pts[pts.length - 1][0]} ${padT + chartH} L ${pts[0][0]} ${padT + chartH} Z`;
+
+    // Area fill
+    const area = document.createElementNS(ns, 'path');
+    area.setAttribute('d', areaD);
+    area.setAttribute('fill', 'url(#realSpendGrad)');
+    svg.appendChild(area);
+
+    // Line
+    const line = document.createElementNS(ns, 'path');
+    line.setAttribute('d', pathD);
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', '#18A06A');
+    line.setAttribute('stroke-width', '2.5');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(line);
+
+    // Data point circles
+    pts.forEach(([x, y]) => {
+        const c = document.createElementNS(ns, 'circle');
+        c.setAttribute('cx', x); c.setAttribute('cy', y);
+        c.setAttribute('r', '4.5');
+        c.setAttribute('fill', 'var(--bg-surface)');
+        c.setAttribute('stroke', '#18A06A');
+        c.setAttribute('stroke-width', '2.5');
+        svg.appendChild(c);
+    });
+
+    // X-axis labels
+    labelsEl.innerHTML = labels.map(l => `<span>${l}</span>`).join('');
+})();
+</script>
 {% endblock content %}

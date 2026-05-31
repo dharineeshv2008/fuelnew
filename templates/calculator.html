@@ -2,146 +2,209 @@
 {% from 'components.html' import InputField, SelectField, GradientButton, OutlineButton %}
 
 {% block content %}
+<style media="print">
+    @media print {
+        .fw-sidebar, #mobileHead, #calcForm, #saveHistoryForm, .fw-btn, #exportCsvBtn, #exportPdfBtn {
+            display: none !important;
+        }
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+        .fw-card {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+    }
+</style>
+
 <div class="animate-fade-up max-w-6xl mx-auto" id="page-calculator">
-    <div class="flex flex-col md:flex-row justify-between items-start mb-10 gap-4 px-2">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
         <div>
-            <h1 class="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Cost Calculator</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Determine exact fuel costs for your regular commutes.</p>
+            <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Trip Cost Calculator</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Compute precise trip fuel expenses and wear parameters.</p>
         </div>
         <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold tracking-widest">
-            Calculate Costs
+            Diagnostics Mode
         </div>
     </div>
 
-    <div class="saas-container flex flex-col gap-10 px-2">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2">
         <!-- Input Section -->
-        <div class="w-full">
-            <div class="fw-card animate-fade-up border-0 shadow-sm">
-                <div class="flex items-center gap-3 mb-8">
+        <div class="lg:col-span-5">
+            <div class="fw-card">
+                <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
                     <div class="w-1.5 h-6 bg-primary rounded-full"></div>
-                    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white">Trip Details</h3>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Trip Specifications</h3>
                 </div>
-                <!-- Line added to ensure the form content starts below the title -->
-                <div class="mt-2"></div>
 
                 <form method="POST" action="{{ url_for('calculator') }}" id="calcForm" class="space-y-4">
                     <input type="hidden" name="action" id="formAction" value="calculate">
 
-                    {% set v_options = [('', '— Select a Vehicle (Optional) —')] %}
+                    {% set v_options = [('', '— Select a Vehicle —')] %}
                     {% for v in vehicles %}
                         {% set label = v.vehicle_name ~ ' (' ~ v.mileage ~ ' ' ~ ('km/kWh' if v.fuel_type == 'EV' else 'km/L') ~ ')' %}
                         {% set _ = v_options.append((v.id|string, label)) %}
                     {% endfor %}
 
-                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 mt-2">Vehicle Specification</h4>
-                    <div class="fw-form-row">
-                        {{ SelectField('vehicle_id', 'Vehicle', v_options, selected=form.get('vehicle_id')) }}
+                    {{ SelectField('vehicle_id', 'Select Fleet Vehicle (Optional)', v_options, selected=form.get('vehicle_id')) }}
+
+                    {{ InputField('distance', 'Trip Distance (km)', type='number', step='0.1', value=form.get('distance', ''), placeholder='e.g. 150', required=true) }}
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        {{ InputField('mileage', 'Vehicle Mileage', type='number', step='0.1', value=form.get('mileage', ''), placeholder='e.g. 15.0', required=true) }}
+                        {{ InputField('fuel_price', 'Fuel Unit Price', type='number', step='0.01', value=form.get('fuel_price', ''), placeholder='e.g. 100.0', required=true) }}
                     </div>
 
-                    <div class="fw-form-row">
-                        {{ InputField('distance', 'Distance (km)', type='number', step='0.1', value=form.get('distance', ''), required=true) }}
-                        
-                        {% set auto_mpg = form.get('mileage', '') %}
-                        {% if form.get('vehicle_id') %}
-                            {% for v in vehicles %}
-                                {% if v.id|string == form.get('vehicle_id')|string %}
-                                    {% set auto_mpg = v.mileage|string %}
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                        {{ InputField('mileage', 'Mileage', type='number', step='0.1', value=auto_mpg, required=true) }}
+                    <div class="grid grid-cols-2 gap-4">
+                        {{ SelectField('trip_type', 'Route Type', [('one-way', 'One Way'), ('round-trip', 'Round Trip')], selected=form.get('trip_type')) }}
+                        {{ InputField('passengers', 'Passengers', type='number', step='1', value=form.get('passengers', '1'), placeholder='1') }}
                     </div>
 
-                    <div class="fw-form-row">
-                        {{ InputField('fuel_price', 'Fuel Price', type='number', step='0.01', value=form.get('fuel_price', ''), required=true) }}
-                    </div>
+                    {{ InputField('daily_km', 'Projected Daily Runs (km / Optional)', type='number', step='1', value=form.get('daily_km', ''), placeholder='e.g. 40') }}
 
-                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 mt-8">Route Factors</h4>
-                    <div class="fw-form-row">
-                        {{ SelectField('trip_type', 'Trip Type', [('one-way', 'One Way'), ('round-trip', 'Round Trip')], selected=form.get('trip_type')) }}
-                        {{ InputField('passengers', 'Passengers', type='number', step='1', value=form.get('passengers', '1')) }}
-                    </div>
-
-                    <div class="fw-form-row">
-                        {{ InputField('daily_km', 'Daily Travel (km)', type='number', step='1', value=form.get('daily_km', '')) }}
-                    </div>
-
-                    <div class="pt-6">
-                        {{ GradientButton('Calculate Cost', icon='fa-calculator', class='w-full py-4 text-lg', onclick="document.getElementById('formAction').value='calculate'") }}
+                    <div class="pt-4">
+                        {{ GradientButton('Perform Computation', icon='fa-calculator', class='w-full text-base', onclick="document.getElementById('formAction').value='calculate'") }}
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- Result Section -->
-        <div class="w-full space-y-6">
+        <div class="lg:col-span-7 space-y-6">
             {% if result %}
-            <div class="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm animate-fade-up overflow-hidden group">
-                <div class="flex justify-between items-start mb-10 pb-10 border-b border-gray-100 dark:border-white/5 relative">
-                    <div class="space-y-1">
+            <div class="fw-card hover:border-primary/25 transition-all">
+                <!-- Top Summary Header -->
+                <div class="flex justify-between items-start mb-6 pb-6 border-b border-gray-100 dark:border-white/5">
+                    <div>
                         <div class="flex items-center gap-3">
                             <div class="w-1.5 h-6 bg-primary rounded-full"></div>
-                            <h3 class="text-xl font-black text-gray-900 dark:text-white">Cost Summary</h3>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Cost Assessment</h3>
                         </div>
-                        <p class="text-sm text-gray-500 font-medium">Rating: <span class="text-primary font-bold">{{ result.rating }}</span></p>
+                        <p class="text-xs text-gray-500 font-semibold mt-1">Telemetry index rating: <span class="text-primary font-bold">{{ result.rating }}</span></p>
                     </div>
                     <div class="text-right">
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-primary mb-1 text-right">Total Cost</span>
-                        <span class="block text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-secondary">{{ format_currency(result.total_cost) }}</span>
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Total Trip Expense</span>
+                        <span class="block text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-secondary">{{ format_currency(result.total_cost) }}</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
-                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 group-hover:bg-white dark:group-hover:bg-white/10 transition-all">
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Act. Distance</span>
-                        <span class="text-xl font-black text-gray-900 dark:text-white">{{ result.distance|round|int }}<span class="text-xs font-bold text-gray-400 ml-1">KM</span></span>
+                <!-- Summary Banner -->
+                <div class="p-4 bg-primary/5 border border-primary/10 rounded-2xl mb-6 text-xs text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-primary mr-1"></i>
+                    Your trip will cost approximately <strong class="text-primary">{{ format_currency(result.total_cost) }}</strong> and consume <strong class="text-primary">{{ result.fuel_needed|round(2) }} {% if result.unit %}{{ result.unit.split(' ')[0] }}{% else %}Liters{% endif %}</strong> of fuel.
+                </div>
+
+                <!-- 2x3 Metric Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Actual Dist.</span>
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">{{ result.distance|round|int }}<span class="text-xs font-semibold text-gray-400 ml-1">KM</span></span>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 group-hover:bg-white dark:group-hover:bg-white/10 transition-all">
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Fuel Used</span>
-                        <span class="text-xl font-black text-gray-900 dark:text-white">{{ result.fuel_needed|round(2) }}{% if result.unit %}<span class="text-xs font-bold text-gray-400 ml-1">{{ result.unit }}</span>{% endif %}</span>
+                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Fuel Needed</span>
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">{{ result.fuel_needed|round(2) }}<span class="text-xs font-semibold text-gray-400 ml-1">{% if result.unit %}{{ result.unit.split(' ')[0] }}{% else %}L{% endif %}</span></span>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 group-hover:bg-white dark:group-hover:bg-white/10 transition-all">
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Cost per km</span>
-                        <span class="text-xl font-black text-gray-900 dark:text-white">{{ format_currency(result.cost_per_km) }}</span>
+                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Cost / KM</span>
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">{{ format_currency(result.cost_per_km) }}</span>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 group-hover:bg-white dark:group-hover:bg-white/10 transition-all">
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Per Passenger</span>
-                        <span class="text-xl font-black text-gray-900 dark:text-white">{{ format_currency(result.cost_per_passenger) }}</span>
+                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Per Passenger</span>
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">{{ format_currency(result.cost_per_passenger) }}</span>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 group-hover:bg-white dark:group-hover:bg-white/10 transition-all">
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Wear & Tear</span>
-                        <span class="text-xl font-black text-gray-900 dark:text-white">{{ format_currency(result.wear_tear) }}</span>
+                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Wear Estimate</span>
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">{{ format_currency(result.wear_tear) }}</span>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 group-hover:bg-white dark:group-hover:bg-white/10 transition-all">
-                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">CO₂ Impact</span>
-                        <span class="text-xl font-black text-gray-900 dark:text-white">{{ result.co2|round(1) }}<span class="text-xs font-bold text-gray-400 ml-1">KG</span></span>
+                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">CO₂ Carbon</span>
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">{{ result.co2|round(1) }}<span class="text-xs font-semibold text-gray-400 ml-1">KG</span></span>
                     </div>
                 </div>
 
+                <!-- Graphical Breakdown Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 pt-6 border-t border-gray-100 dark:border-white/5">
+                    <!-- Gauge 1: Efficiency Score -->
+                    <div class="text-center bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                        <h4 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Trip Efficiency Gauge</h4>
+                        {% set score = 25 %}
+                        {% set color = '#EF4444' %}
+                        {% if 'Super Efficient' in result.rating %}
+                            {% set score = 95 %}
+                            {% set color = '#22C55E' %}
+                        {% elif 'Great' in result.rating %}
+                            {% set score = 75 %}
+                            {% set color = '#8B5CF6' %}
+                        {% elif 'Average' in result.rating %}
+                            {% set score = 50 %}
+                            {% set color = '#F59E0B' %}
+                        {% endif %}
+                        <div class="relative w-24 h-24 mx-auto mb-2">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" stroke="var(--border-color)" stroke-width="8" fill="none" />
+                                <circle cx="50" cy="50" r="40" stroke="{{ color }}" stroke-width="8" fill="none"
+                                        stroke-dasharray="251.2" stroke-dashoffset="{{ 251.2 - (251.2 * score / 100) }}"
+                                        stroke-linecap="round" class="transition-all duration-1000" transform="rotate(-90 50 50)" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col justify-center items-center">
+                                <span class="text-lg font-bold" style="color: {{ color }};">{{ score }}%</span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-400 block">{{ result.rating.split(' ')[0] }} Range</span>
+                    </div>
+
+                    <!-- Gauge 2: Cost Breakdown -->
+                    <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-center">
+                        <h4 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4 text-center">Cost Factor Breakdown</h4>
+                        {% set total_impact = result.total_cost + result.wear_tear %}
+                        {% set fuel_pct = (result.total_cost / total_impact * 100) if total_impact > 0 else 50 %}
+                        {% set wear_pct = (result.wear_tear / total_impact * 100) if total_impact > 0 else 50 %}
+                        <div class="w-full h-3 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden flex mb-4">
+                            <div class="h-full bg-primary" style="width: {{ fuel_pct }}%;"></div>
+                            <div class="h-full bg-secondary" style="width: {{ wear_pct }}%;"></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="flex items-center gap-1.5 text-gray-400"><span class="w-2.5 h-2.5 bg-primary rounded-full"></span> Fuel Charge</span>
+                                <span class="font-bold text-gray-900 dark:text-white">{{ fuel_pct|round|int }}%</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="flex items-center gap-1.5 text-gray-400"><span class="w-2.5 h-2.5 bg-secondary rounded-full"></span> Wear & Tear</span>
+                                <span class="font-bold text-gray-900 dark:text-white">{{ wear_pct|round|int }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Forecast Project -->
                 {% if result.monthly_cost %}
-                <div class="bg-green-500/5 border border-green-500/10 rounded-3xl p-6 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-500">
+                <div class="bg-green-500/5 border border-green-500/10 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
                             <i class="fa-solid fa-calendar-days"></i>
                         </div>
                         <div>
-                            <span class="block text-[10px] font-black uppercase tracking-widest text-green-600/60 transition-all group-hover:text-green-600">Sync Forecast</span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Projected costs based on daily run-rate</span>
+                            <span class="block text-[10px] font-bold uppercase tracking-widest text-green-600">Forecast Matrix</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold">Projected cost parameters based on commute run-rate</span>
                         </div>
                     </div>
-                    <div class="flex gap-8">
+                    <div class="flex gap-6">
                         <div>
-                            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Monthly</span>
-                            <span class="text-lg font-black text-gray-900 dark:text-white">{{ format_currency(result.monthly_cost) }}</span>
+                            <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">Monthly</span>
+                            <span class="text-base font-bold text-gray-900 dark:text-white">{{ format_currency(result.monthly_cost) }}</span>
                         </div>
                         <div>
-                            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Yearly</span>
-                            <span class="text-lg font-black text-gray-900 dark:text-white">{{ format_currency(result.yearly_cost) }}</span>
+                            <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">Yearly</span>
+                            <span class="text-base font-bold text-gray-900 dark:text-white">{{ format_currency(result.yearly_cost) }}</span>
                         </div>
                     </div>
                 </div>
                 {% endif %}
 
+                <!-- Export & History Forms -->
                 <form method="POST" action="{{ url_for('calculator') }}" class="flex flex-col sm:flex-row gap-4" id="saveHistoryForm">
                     <input type="hidden" name="action" value="save_calc">
                     <input type="hidden" name="distance_val" value="{{ form.get('distance') }}">
@@ -151,27 +214,30 @@
                     <input type="hidden" name="trip_type_val" value="{{ form.get('trip_type') }}">
                     <input type="hidden" name="passengers_val" value="{{ form.get('passengers') }}">
                     <input type="hidden" name="total_cost_val" value="{{ result.total_cost }}">
+                    
                     <div class="flex-1">
-                        {{ OutlineButton('Save to History', icon='fa-bookmark', type='submit', class='w-full') }}
+                        {{ OutlineButton('Save to History', icon='fa-bookmark', type='submit', class='w-full text-xs') }}
                     </div>
-                    <div class="sm:w-1/3">
-                        <button type="button" id="exportCsvBtn" class="w-full flex items-center justify-center gap-2 py-3 px-5 border-2 border-primary/30 text-primary rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-primary/5 active:scale-[0.98] transition-all">
-                            <i class="fa-solid fa-file-csv"></i> Export CSV
+                    <div class="flex gap-2">
+                        <button type="button" id="exportPdfBtn" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-12 px-5 border border-primary/30 text-primary rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-primary/5 active:scale-95 transition-all">
+                            <i class="fa-solid fa-file-pdf"></i> PDF
+                        </button>
+                        <button type="button" id="exportCsvBtn" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-12 px-5 border border-primary/30 text-primary rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-primary/5 active:scale-95 transition-all">
+                            <i class="fa-solid fa-file-csv"></i> CSV
                         </button>
                     </div>
                 </form>
             </div>
 
             {% else %}
-            <div class="bg-white/50 dark:bg-white/[0.02] border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[3rem] p-16 text-center group transition-all hover:bg-white dark:hover:bg-white/5 min-h-[400px] flex flex-col justify-center">
-                <div class="w-24 h-24 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-8 transition-transform group-hover:scale-110">
-                    <i class="fa-solid fa-calculator text-4xl text-gray-300 dark:text-gray-600"></i>
+            <!-- Calculator Initial Empty State -->
+            <div class="fw-empty-state min-h-[400px]">
+                <div class="fw-empty-icon">
+                    <i class="fa-solid fa-calculator"></i>
                 </div>
-                <h4 class="text-2xl font-black mb-3 text-gray-900 dark:text-white">Enter Your Details</h4>
-                <p class="text-gray-500 dark:text-gray-400 max-w-xs mx-auto mb-8 font-medium">Input your distance and fuel price to calculate expenses.</p>
-                <div class="flex justify-center">
-                    <div class="px-8 py-2.5 rounded-full border border-gray-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-400 shadow-sm">Ready to Calculate</div>
-                </div>
+                <h4 class="fw-empty-title">Perform a Calculation</h4>
+                <p class="fw-empty-text">Provide travel distance, vehicle parameters, and fuel prices in the specifications form to run cost analytics.</p>
+                <div class="px-6 py-1.5 rounded-full border border-gray-200 dark:border-white/10 text-[9px] font-bold uppercase tracking-widest text-gray-400">Ready for Telemetry</div>
             </div>
             {% endif %}
         </div>
@@ -180,67 +246,41 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Reactivity for Vehicle Selection
-    const vehicleSelect = document.querySelector('select[name="vehicle_id"]');
-    const mileageInput = document.querySelector('input[name="mileage"]');
-    
-    // Load local storage vehicles 
-    const storedVehicles = JSON.parse(localStorage.getItem('fw_vehicles') || '[]');
-    
+    // 1. Load fleet vehicles
+    const storedVehicles = {{ vehicles | tojson | safe }};
+
+    // Preset Fuel Prices synced from backend Session preferences
+    const fuelPrices = {
+        'Petrol': {{ price_petrol }},
+        'Diesel': {{ price_diesel }},
+        'CNG': {{ price_cng }},
+        'EV': {{ price_ev }},
+        'Hybrid': {{ price_petrol }} // default hybrid to petrol
+    };
+
+    const vehicleSelect = document.getElementById('id_vehicle_id');
+    const mileageInput = document.getElementById('id_mileage');
+    const priceInput = document.getElementById('id_fuel_price');
+
     if (vehicleSelect && storedVehicles.length > 0) {
         vehicleSelect.addEventListener("change", (e) => {
             const vid = e.target.value;
             if (!vid) {
-                mileageInput.value = '';
+                if (mileageInput) mileageInput.value = '';
+                if (priceInput) priceInput.value = '';
                 return;
             }
             const v = storedVehicles.find(x => String(x.id) === String(vid));
             if (v) {
-                mileageInput.value = v.mileage;
-                
-                // Add a small highlight animation
-                mileageInput.classList.add('ring-2', 'ring-primary', 'transition-all');
-                setTimeout(() => {
-                    mileageInput.classList.remove('ring-2', 'ring-primary');
-                }, 500);
+                if (mileageInput) mileageInput.value = v.mileage;
+                if (priceInput) {
+                    priceInput.value = fuelPrices[v.fuel_type] || '';
+                }
             }
         });
     }
 
-    // 2. Main Calculation Form Validation
-    const calcForm = document.getElementById("calcForm");
-    if (calcForm) {
-        calcForm.addEventListener("submit", (e) => {
-            if (document.getElementById('formAction').value !== 'calculate') return;
-            const dist = calcForm.querySelector('input[name="distance"]').value;
-            const mileage = mileageInput ? mileageInput.value : 0;
-            const price = calcForm.querySelector('input[name="fuel_price"]').value;
-            
-            if (!dist || !mileage || !price || dist <= 0 || mileage <= 0 || price <= 0) {
-                e.preventDefault();
-                alert("Please enter valid positive values for Distance, Efficiency, and Unit Price.");
-            }
-        });
-    }
-
-    // 3. Save to History interception
-    const saveForm = document.getElementById("saveHistoryForm");
-    if (saveForm) {
-        saveForm.addEventListener("submit", (e) => {
-            const fwTrips = JSON.parse(localStorage.getItem('fw_trips') || '[]');
-            const trip = {
-                id: Math.random().toString(36).substr(2, 9),
-                distance: saveForm.querySelector('input[name="distance_val"]').value,
-                total_cost: saveForm.querySelector('input[name="total_cost_val"]').value,
-                fuel_price: saveForm.querySelector('input[name="price_val"]').value,
-                date: new Date().toISOString()
-            };
-            fwTrips.push(trip);
-            localStorage.setItem('fw_trips', JSON.stringify(fwTrips));
-        });
-    }
-
-    // 4. CSV Export Feature
+    // 2. CSV Export
     const exportBtn = document.getElementById("exportCsvBtn");
     if (exportBtn) {
         exportBtn.addEventListener("click", () => {
@@ -264,6 +304,14 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        });
+    }
+
+    // 3. PDF print trigger
+    const pdfBtn = document.getElementById("exportPdfBtn");
+    if (pdfBtn) {
+        pdfBtn.addEventListener("click", () => {
+            window.print();
         });
     }
 });

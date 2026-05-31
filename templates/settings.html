@@ -3,10 +3,11 @@
 
 {% block content %}
 <div class="animate-fade-up max-w-6xl mx-auto" id="page-settings">
+    <!-- Header Section -->
     <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
         <div>
             <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Configuration</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">Manage your account protocols and system preferences.</p>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">Manage your active parameters and system profiles.</p>
         </div>
         <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest">
             System Settings
@@ -16,89 +17,92 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2">
         <!-- Sidebar Navigation -->
         <div class="lg:col-span-3 space-y-3">
-            <a href="#identity" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-primary text-white font-semibold transition-all shadow-lg shadow-primary/25 group">
+            <a href="#identity" class="flex items-center gap-3 px-5 py-3 rounded-xl bg-primary text-white font-semibold transition-all shadow-md shadow-primary/20 group">
                 <i class="fa-solid fa-id-badge transition-transform group-hover:scale-110"></i>
-                <span>Identity</span>
+                <span class="text-sm">Identity</span>
             </a>
-            <a href="#localization" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400 font-medium transition-all group">
-                <i class="fa-solid fa-earth-americas transition-transform group-hover:scale-110"></i>
-                <span>Localization</span>
+            <a href="#localization" class="flex items-center gap-3 px-5 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400 font-medium transition-all group">
+                <i class="fa-solid fa-earth-americas transition-transform group-hover:scale-110 text-gray-400"></i>
+                <span class="text-sm">Localization</span>
             </a>
-            <a href="#security" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400 font-medium transition-all group">
-                <i class="fa-solid fa-shield-halved transition-transform group-hover:scale-110"></i>
-                <span>Security</span>
+            <a href="#fuel_presets" class="flex items-center gap-3 px-5 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400 font-medium transition-all group">
+                <i class="fa-solid fa-gas-pump transition-transform group-hover:scale-110 text-gray-400"></i>
+                <span class="text-sm">Fuel Presets</span>
             </a>
-
-            <div class="mt-8 p-6 rounded-2xl bg-red-500/5 border border-red-500/10 active:scale-[0.98] transition-all group cursor-pointer">
-                <h4 class="text-red-500 text-sm font-bold flex items-center gap-2 mb-2">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Danger Zone
-                </h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Terminate account protocols and wipe all telemetry.</p>
-                <button class="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-black uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all">
-                    Initiate Purge
-                </button>
-            </div>
         </div>
 
         <!-- Main Content -->
         <div class="lg:col-span-9 space-y-8 pb-12">
             <!-- Identity Section -->
-            <section id="identity" class="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2rem] p-8 shadow-sm transition-all hover:border-primary/20">
-                <div class="flex items-center gap-3 mb-8">
+            <section id="identity" class="fw-card hover:border-primary/25">
+                <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
                     <div class="w-1.5 h-6 bg-primary rounded-full"></div>
-                    <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Operational Identity</h3>
+                    <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Profile Designation</h3>
                 </div>
                 
-                <div class="flex flex-col sm:flex-row items-center gap-10 mb-10 pb-10 border-b border-gray-100 dark:border-white/5">
+                <div class="flex flex-col sm:flex-row items-center gap-8 mb-8 pb-8 border-b border-gray-100 dark:border-white/5">
                     <div class="relative group">
-                        <div class="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-primary to-secondary p-1 overflow-hidden transition-all group-hover:rotate-3 group-hover:scale-[1.05] shadow-xl shadow-primary/20">
-                            {% if user.avatar %}
-                            <img src="{{ user.avatar }}" alt="Avatar" class="w-full h-full object-cover rounded-[calc(2.5rem-4px)]">
-                            {% else %}
-                            <div class="w-full h-full bg-white dark:bg-gray-900 rounded-[calc(2.5rem-4px)] flex items-center justify-center">
-                                <span class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-secondary">{{ user.name[0] | upper }}</span>
+                        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-secondary p-0.5 overflow-hidden transition-all group-hover:scale-[1.03] shadow-md shadow-primary/10">
+                            <div class="w-full h-full bg-white dark:bg-gray-900 rounded-[calc(1rem-2px)] flex items-center justify-center">
+                                <span class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-secondary">
+                                    {{ user.name[0] | upper if user else 'C' }}
+                                </span>
                             </div>
-                            {% endif %}
                         </div>
-                        <label for="avatar-input" class="absolute -bottom-2 -right-2 w-11 h-11 bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-2xl flex items-center justify-center text-primary shadow-xl hover:scale-110 active:scale-90 transition-all cursor-pointer group-hover:bg-primary group-hover:text-white group-hover:border-primary">
-                            <i class="fa-solid fa-camera"></i>
-                        </label>
-                        <input type="file" id="avatar-input" class="hidden">
                     </div>
-                    <div class="flex-1 text-center sm:text-left space-y-2">
-                        <h4 class="text-3xl font-black tracking-tight">{{ user.name }}</h4>
-                        <p class="text-gray-500 dark:text-gray-400 font-medium">{{ user.email }}</p>
+                    <div class="flex-1 text-center sm:text-left space-y-1">
+                        <h4 class="text-2xl font-bold tracking-tight">{{ user.name if user else 'Commander' }}</h4>
+                        <p class="text-gray-500 dark:text-gray-400 font-medium text-sm">{{ user.email if user else 'demo@fuelwise.io' }}</p>
                         <div class="pt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
-                            <span class="px-3.5 py-1.5 bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-green-500/20 shadow-sm">Verified Agent</span>
-                            <span class="px-3.5 py-1.5 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-amber-500/20 shadow-sm">Cloud Sync Enabled</span>
+                            <span class="px-2.5 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-green-500/20">Active Session</span>
+                            <span class="px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-lg border border-primary/20">Demo Telemetry</span>
                         </div>
                     </div>
                 </div>
 
-                <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {{ InputField('name', 'Display Designation', value=user.name, required=true) }}
-                    {{ InputField('email', 'Communication Node', value=user.email, type='email', disabled=true, helper='Primary system identifier (Read Only)') }}
-                    <div class="md:col-span-2 pt-4">
-                        {{ GradientButton('Synchronize Profile Settings', icon='fa-database', class='sm:w-auto w-full px-10') }}
+                <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {{ InputField('name', 'Display Name', value=user.name if user else '', required=true) }}
+                    {{ InputField('email', 'Email Address', value=user.email if user else '', type='email', disabled=true, helper='Primary system identifier (Read Only)') }}
+                    <div class="md:col-span-2 pt-2">
+                        {{ GradientButton('Synchronize Profile', icon='fa-database', class='sm:w-auto w-full px-8 text-sm') }}
                     </div>
                 </form>
             </section>
 
             <!-- Localization Section -->
-            <section id="localization" class="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[2rem] p-8 shadow-sm transition-all hover:border-secondary/20">
-                <div class="flex items-center gap-3 mb-8">
+            <section id="localization" class="fw-card hover:border-secondary/25">
+                <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
                     <div class="w-1.5 h-6 bg-secondary rounded-full"></div>
-                    <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Region & Environment</h3>
+                    <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Localization Settings</h3>
                 </div>
                 
-                <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {{ SelectField('unit_system', 'Standard Units', [('metric','Metric (KM/L)'), ('imperial','Imperial (MPG)')], selected='metric') }}
-                    {{ SelectField('currency', 'Global Tender Symbol', [('₹','INR (₹)'), ('$','USD ($)'), ('€','EUR (€)'), ('£','GBP (£)')], selected=currency) }}
+                <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {{ SelectField('unit_system', 'Measurement Units', [('metric','Metric (KM/L)'), ('imperial','Imperial (MPG)')], selected='metric') }}
+                    {{ SelectField('currency', 'Currency Tender Symbol', [('₹','INR (₹)'), ('$','USD ($)'), ('€','EUR (€)'), ('£','GBP (£)')], selected=currency) }}
                     <div class="md:col-span-2">
-                        {{ SelectField('theme', 'Visual Operating Protocol', [('light','Optimized Daylight'), ('dark','High-Contrast Darkroom')], selected=theme) }}
+                        {{ SelectField('theme', 'Dashboard Theme Mode', [('light','Optimized Light'), ('dark','High-Contrast Darkroom')], selected=theme) }}
                     </div>
-                    <div class="md:col-span-2 pt-4">
-                        {{ GradientButton('Deploy Environment Parameters', icon='fa-bolt-lightning', class='sm:w-auto w-full px-10 bg-secondary shadow-secondary/25') }}
+                    <div class="md:col-span-2 pt-2">
+                        {{ GradientButton('Deploy Parameters', icon='fa-bolt-lightning', class='sm:w-auto w-full px-8 bg-secondary shadow-secondary/20') }}
+                    </div>
+                </form>
+            </section>
+
+            <!-- Fuel Presets Section -->
+            <section id="fuel_presets" class="fw-card hover:border-success/25">
+                <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
+                    <div class="w-1.5 h-6 bg-success rounded-full"></div>
+                    <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Fuel Price Presets</h3>
+                </div>
+                
+                <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {{ InputField('price_petrol', 'Petrol Price (per Litre)', type='number', step='0.01', value=price_petrol, required=true) }}
+                    {{ InputField('price_diesel', 'Diesel Price (per Litre)', type='number', step='0.01', value=price_diesel, required=true) }}
+                    {{ InputField('price_cng', 'CNG Price (per kg)', type='number', step='0.01', value=price_cng, required=true) }}
+                    {{ InputField('price_ev', 'Electricity Cost (per kWh)', type='number', step='0.01', value=price_ev, required=true) }}
+                    
+                    <div class="md:col-span-2 pt-2">
+                        {{ GradientButton('Save Fuel Prices', icon='fa-gas-pump', class='sm:w-auto w-full px-8 bg-success shadow-success/20') }}
                     </div>
                 </form>
             </section>
@@ -108,43 +112,43 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const avatarInput = document.getElementById("avatar-input");
-    const avatarContainer = avatarInput.closest('.relative.group').querySelector('.w-32.h-32');
-    
-    // Load existing avatar from localStorage if available
-    const savedAvatar = localStorage.getItem("fw_avatar");
-    if (savedAvatar && avatarContainer) {
-        avatarContainer.innerHTML = `<img src="${savedAvatar}" alt="Avatar" class="w-full h-full object-cover rounded-[calc(2.5rem-4px)]">`;
-    }
-
-    if (avatarInput) {
-        avatarInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const base64 = e.target.result;
-                    // Persist to localStorage
-                    localStorage.setItem("fw_avatar", base64);
-                    // Show preview
-                    avatarContainer.innerHTML = `<img src="${base64}" alt="Avatar" class="w-full h-full object-cover rounded-[calc(2.5rem-4px)]">`;
-                    
-                    // Show success toast
-                    const toastContainer = document.getElementById('toastContainer');
-                    if (toastContainer) {
-                        const toast = document.createElement('div');
-                        toast.className = "fw-toast";
-                        toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success);"></i><span>Avatar updated!</span>`;
-                        toastContainer.appendChild(toast);
-                        
-                        setTimeout(() => {
-                            toast.style.transform = "translateX(120%)";
-                            toast.style.opacity = "0";
-                            setTimeout(() => toast.remove(), 400);
-                        }, 3000);
-                    }
-                };
-                reader.readAsDataURL(file);
+    // Theme Dropdown Sync and Logic
+    const themeSelect = document.getElementById('id_theme');
+    if (themeSelect) {
+        const savedTheme = localStorage.getItem('fw-theme') || 'light';
+        themeSelect.value = savedTheme;
+        
+        // Sync custom dropdown text label
+        const labelTheme = document.getElementById('label_theme');
+        if (labelTheme) {
+            labelTheme.innerText = savedTheme === 'dark' ? 'High-Contrast Darkroom' : 'Optimized Light';
+        }
+        
+        // Sync active class in dropdown menu list
+        const container = document.getElementById('container_theme');
+        if (container) {
+            container.querySelectorAll('.fw-dropdown-item').forEach(item => {
+                const isSelected = (savedTheme === 'dark' && item.innerText.includes('Darkroom')) ||
+                                   (savedTheme === 'light' && item.innerText.includes('Light'));
+                item.classList.toggle('selected', isSelected);
+            });
+        }
+        
+        // Listen for change events on custom dropdown selection
+        themeSelect.addEventListener('change', (e) => {
+            const newTheme = e.target.value;
+            document.documentElement.classList.toggle('dark', newTheme === 'dark');
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('fw-theme', newTheme);
+            
+            // Also sync the sidebar text & switcher indicator if present
+            const themeText = document.getElementById("themeText");
+            const themeIndicator = document.getElementById("themeIndicator");
+            if (themeText) {
+                themeText.innerText = newTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
+            }
+            if (themeIndicator) {
+                themeIndicator.style.left = newTheme === 'dark' ? 'calc(100% - 12px)' : '4px';
             }
         });
     }

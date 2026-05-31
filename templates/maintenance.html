@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="animate-fade-up max-w-6xl mx-auto" id="page-maintenance">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Vehicle Maintenance Tracker</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Track service schedules, insurance, PUC, and maintenance across your fleet.</p>
+        </div>
+        <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest">
+            Fleet Care
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2">
+        <!-- Left: Add Form -->
+        <div class="lg:col-span-5">
+            <div class="fw-card">
+                <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
+                    <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                    <h3 class="text-xl font-bold">Add Maintenance Record</h3>
+                </div>
+
+                <form method="POST" class="space-y-4">
+                    <input type="hidden" name="action" value="add">
+
+                    <div>
+                        <label class="fw-label"><i class="fa-solid fa-car text-primary mr-1"></i> Vehicle</label>
+                        <select name="vehicle_id" class="fw-input" required>
+                            <option value="">-- Select Vehicle --</option>
+                            {% for v in vehicles %}
+                            <option value="{{ v.id }}">{{ v.vehicle_name }} ({{ v.fuel_type }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="fw-label"><i class="fa-solid fa-wrench text-secondary mr-1"></i> Maintenance Type</label>
+                        <select name="maintenance_type" class="fw-input" required>
+                            <option value="Service">🔧 General Service</option>
+                            <option value="Insurance">🛡️ Insurance Renewal</option>
+                            <option value="PUC">📋 PUC Certificate</option>
+                            <option value="Battery">🔋 Battery Check/Replace</option>
+                            <option value="Tyres">🛞 Tyre Change/Rotation</option>
+                            <option value="Oil Change">🛢️ Oil Change</option>
+                            <option value="Brake">🔴 Brake Service</option>
+                            <option value="AC Service">❄️ AC Service</option>
+                            <option value="Other">📝 Other</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="fw-label">Last Service Date</label>
+                            <input type="date" name="last_date" class="fw-input" required>
+                        </div>
+                        <div>
+                            <label class="fw-label">Next Due Date</label>
+                            <input type="date" name="next_date" class="fw-input" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="fw-label"><i class="fa-solid fa-gauge-high text-warning mr-1"></i> Odometer (km)</label>
+                        <input type="number" name="odometer" placeholder="e.g. 45000" class="fw-input">
+                    </div>
+
+                    <div>
+                        <label class="fw-label">Notes</label>
+                        <textarea name="notes" rows="2" class="fw-input" placeholder="Optional notes..." style="height:auto; padding-top:12px; padding-bottom:12px;"></textarea>
+                    </div>
+
+                    <button type="submit" class="fw-btn fw-btn-primary w-full">
+                        <i class="fa-solid fa-plus mr-2"></i> Add Record
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Records Table -->
+        <div class="lg:col-span-7">
+            {% if maintenance_logs %}
+            <!-- Summary Stats -->
+            {% set overdue_count = maintenance_logs|selectattr('status', 'equalto', 'overdue')|list|length %}
+            {% set due_soon_count = maintenance_logs|selectattr('status', 'equalto', 'due_soon')|list|length %}
+            {% set ok_count = maintenance_logs|selectattr('status', 'equalto', 'ok')|list|length %}
+
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="fw-card text-center" style="padding:16px;">
+                    <div class="text-2xl font-black text-red-500">{{ overdue_count }}</div>
+                    <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">Overdue</div>
+                </div>
+                <div class="fw-card text-center" style="padding:16px;">
+                    <div class="text-2xl font-black text-yellow-500">{{ due_soon_count }}</div>
+                    <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">Due Soon</div>
+                </div>
+                <div class="fw-card text-center" style="padding:16px;">
+                    <div class="text-2xl font-black text-primary">{{ ok_count }}</div>
+                    <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">On Track</div>
+                </div>
+            </div>
+
+            <div class="fw-card">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
+                    <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                    <h3 class="text-lg font-bold">Maintenance Records</h3>
+                    <span class="ml-auto text-xs font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-lg">{{ maintenance_logs|length }} records</span>
+                </div>
+
+                <div class="space-y-3">
+                    {% for log in maintenance_logs %}
+                    <div class="flex items-center gap-3 py-3 px-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 {% if log.status == 'overdue' %}border-red-500/30{% elif log.status == 'due_soon' %}border-yellow-500/30{% endif %}">
+                        <!-- Icon -->
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+                            {% if log.status == 'overdue' %}bg-red-500/10 text-red-500
+                            {% elif log.status == 'due_soon' %}bg-yellow-500/10 text-yellow-500
+                            {% else %}bg-primary/10 text-primary{% endif %}">
+                            {% set type_icons = {'Service': 'fa-wrench', 'Insurance': 'fa-shield', 'PUC': 'fa-clipboard-check', 'Battery': 'fa-car-battery', 'Tyres': 'fa-circle', 'Oil Change': 'fa-oil-can', 'Brake': 'fa-circle-stop', 'AC Service': 'fa-snowflake'} %}
+                            <i class="fa-solid {{ type_icons.get(log.type, 'fa-screwdriver-wrench') }} text-sm"></i>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="font-bold text-sm">{{ log.type }}</span>
+                                {% if log.status == 'overdue' %}
+                                <span class="px-2 py-0.5 bg-red-500/10 text-red-500 text-xs font-bold rounded-full">Overdue</span>
+                                {% elif log.status == 'due_soon' %}
+                                <span class="px-2 py-0.5 bg-yellow-500/10 text-yellow-500 text-xs font-bold rounded-full">Due Soon</span>
+                                {% elif log.status == 'ok' %}
+                                <span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-full">On Track</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-gray-400">
+                                {% if vmap.get(log.vehicle_id) %}
+                                <span class="font-semibold">{{ vmap[log.vehicle_id].vehicle_name }}</span> &bull;
+                                {% endif %}
+                                {% if log.last_date %}Last: {{ log.last_date }}{% endif %}
+                                {% if log.next_date %} &bull; Due: {{ log.next_date }}{% endif %}
+                                {% if log.days_remaining is not none %}
+                                    &bull; <span class="{% if log.days_remaining < 0 %}text-red-500{% elif log.days_remaining <= 30 %}text-yellow-500{% else %}text-primary{% endif %} font-bold">
+                                    {% if log.days_remaining < 0 %}{{ (-log.days_remaining) }} days overdue{% else %}{{ log.days_remaining }} days left{% endif %}</span>
+                                {% endif %}
+                            </div>
+                            {% if log.notes %}
+                            <p class="text-xs text-gray-400 mt-1 truncate">{{ log.notes }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Delete -->
+                        <form method="POST" class="flex-shrink-0">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="maintenance_id" value="{{ log.id }}">
+                            <button type="submit" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center" title="Delete" onclick="return confirm('Delete this record?')">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="fw-empty-state" style="min-height: 400px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <div class="fw-empty-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                <h4 class="fw-empty-title">No Maintenance Records</h4>
+                <p class="fw-empty-text">Add your first maintenance record to start tracking service schedules, insurance renewals, and more.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

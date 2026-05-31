@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FuelWise — Smart Fuel Cost Calculator</title>
+    <title>FuelWise — Premium Fleet & Fuel Intelligence</title>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,14 +12,15 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#6366f1',
-                        secondary: '#8b5cf6',
-                        accent: '#38bdf8',
-                        dark: '#0a0a0f',
+                        primary: '#0F7B53',
+                        secondary: '#18A06A',
+                        accent: '#2ECC71',
+                        dark: '#08120D',
+                        success: '#22C55E',
                     },
                     borderRadius: {
-                        'xl': '1rem',
-                        '2xl': '1.25rem',
+                        'xl': '12px',
+                        '2xl': '16px',
                     }
                 }
             }
@@ -27,7 +28,7 @@
     </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Majestic CSS Component System -->
+    <!-- Premium CSS Design System -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     <script>
@@ -41,23 +42,113 @@
     {% block head %}{% endblock %}
 </head>
 <body class="transition-colors duration-300">
+    <!-- Global Telemetry Background System -->
+    <div class="global-telemetry-bg">
+        <div class="telemetry-grid"></div>
+        <div class="telemetry-orbs">
+            <div class="telemetry-orb orb-primary"></div>
+            <div class="telemetry-orb orb-secondary"></div>
+        </div>
+        <div class="telemetry-svg-container" id="pageTelemetryBg">
+            {% if request.endpoint == 'dashboard' %}
+                <!-- Dashboard: Connected Route & Analytics Network -->
+                <svg class="telemetry-svg" viewBox="0 0 1000 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path class="telemetry-line" d="M100,600 Q300,200 500,450 T900,200" stroke="url(#bgGrad)" stroke-width="2" stroke-linecap="round" opacity="0.3" />
+                    <path class="telemetry-line-anim" d="M100,600 Q300,200 500,450 T900,200" stroke="#2ECC71" stroke-width="2" stroke-linecap="round" />
+                    
+                    <path class="telemetry-line-secondary" d="M50,150 Q400,300 700,100 T950,550" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.2" stroke-linecap="round" />
+                    
+                    <!-- Nodes -->
+                    <circle cx="100" cy="600" r="5" fill="#0F7B53" class="glow-node" />
+                    <circle cx="370" cy="350" r="4" fill="#18A06A" class="glow-node" />
+                    <circle cx="500" cy="450" r="6" fill="#2ECC71" class="glow-node" />
+                    <circle cx="690" cy="280" r="4" fill="#18A06A" class="glow-node" />
+                    <circle cx="900" cy="200" r="6" fill="#2ECC71" class="glow-node" />
+                    
+                    <!-- Flow Particles -->
+                    <circle r="3" fill="#2ECC71" class="flow-particle p-1" />
+                    <circle r="2.5" fill="#FFFFFF" class="flow-particle p-2" />
+                </svg>
+            {% elif request.endpoint in ['smart_planner', 'trip_planner'] %}
+                <!-- Planner: Route Paths, Waypoints & Distance Curves -->
+                <svg class="telemetry-svg" viewBox="0 0 1000 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path class="telemetry-line" d="M50,400 C200,200 400,600 600,300 T950,450" stroke="url(#bgGrad)" stroke-width="2" opacity="0.3" />
+                    <path class="telemetry-line-anim" d="M50,400 C200,200 400,600 600,300 T950,450" stroke="#2ECC71" stroke-width="2" />
+                    
+                    <circle cx="50" cy="400" r="6" fill="#0F7B53" class="glow-node" />
+                    <circle cx="270" cy="310" r="5" fill="#18A06A" class="glow-node" />
+                    <circle cx="480" cy="450" r="5" fill="#18A06A" class="glow-node" />
+                    <circle cx="600" cy="300" r="7" fill="#2ECC71" class="glow-node" />
+                    <circle cx="780" cy="360" r="5" fill="#18A06A" class="glow-node" />
+                    <circle cx="950" cy="450" r="6" fill="#2ECC71" class="glow-node" />
+                    
+                    <circle r="3" fill="#FFFFFF" class="flow-particle p-3" />
+                </svg>
+            {% elif request.endpoint in ['vehicles', 'vehicle_compare', 'maintenance'] %}
+                <!-- Vehicles/Compare/Maintenance: Fleet Network Visuals -->
+                <svg class="telemetry-svg" viewBox="0 0 1000 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="200" y1="200" x2="500" y2="400" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.25" />
+                    <line x1="500" y1="400" x2="800" y2="250" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.25" />
+                    <line x1="200" y1="200" x2="800" y2="250" stroke="url(#bgGrad)" stroke-width="1" stroke-dasharray="4 4" opacity="0.15" />
+                    <line x1="500" y1="400" x2="500" y2="600" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.25" />
+                    <line x1="200" y1="200" x2="500" y2="600" stroke="url(#bgGrad)" stroke-width="1.2" opacity="0.15" />
+                    <line x1="800" y1="250" x2="500" y2="600" stroke="url(#bgGrad)" stroke-width="1.2" opacity="0.15" />
+                    
+                    <circle cx="200" cy="200" r="7" fill="#0F7B53" class="glow-node" />
+                    <circle cx="800" cy="250" r="6" fill="#18A06A" class="glow-node" />
+                    <circle cx="500" cy="400" r="9" fill="#2ECC71" class="glow-node" />
+                    <circle cx="500" cy="600" r="7" fill="#18A06A" class="glow-node" />
+                </svg>
+            {% elif request.endpoint == 'history' %}
+                <!-- History: Journey Paths Flow -->
+                <svg class="telemetry-svg" viewBox="0 0 1000 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path class="telemetry-line" d="M100,100 L100,700 Q300,700 500,500 T900,500" stroke="url(#bgGrad)" stroke-width="2" opacity="0.3" />
+                    <path class="telemetry-line-anim" d="M100,100 L100,700 Q300,700 500,500 T900,500" stroke="#2ECC71" stroke-width="2" />
+                    
+                    <circle cx="100" cy="150" r="6" fill="#0F7B53" class="glow-node" />
+                    <circle cx="100" cy="350" r="6" fill="#18A06A" class="glow-node" />
+                    <circle cx="100" cy="550" r="6" fill="#18A06A" class="glow-node" />
+                    <circle cx="230" cy="700" r="6" fill="#2ECC71" class="glow-node" />
+                    <circle cx="500" cy="500" r="8" fill="#2ECC71" class="glow-node" />
+                    <circle cx="700" cy="500" r="6" fill="#18A06A" class="glow-node" />
+                    <circle cx="900" cy="500" r="8" fill="#2ECC71" class="glow-node" />
+                </svg>
+            {% elif request.endpoint == 'settings' %}
+                <!-- Settings: Minimal simple curves -->
+                <svg class="telemetry-svg" viewBox="0 0 1000 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path class="telemetry-line" d="M50,150 Q500,300 950,150" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.25" />
+                </svg>
+            {% endif %}
+            
+            <svg style="width:0; height:0; position:absolute;">
+                <defs>
+                    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#0F7B53" />
+                        <stop offset="50%" stop-color="#18A06A" />
+                        <stop offset="100%" stop-color="#2ECC71" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+    </div>
+
     <div class="layout-wrapper">
         <!-- SIDEBAR NAV -->
         {% if request.endpoint not in ['login', 'register'] %}
-        <aside class="fw-sidebar" id="sidebar">
-            <div style="padding: 32px 24px; display:flex; align-items:center; gap:12px;">
-                <div style="width:36px; height:36px; border-radius:12px; background:linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-glow); font-size:1.1rem;">
-                    <i class="fa-solid fa-bolt" style="color:#fff;"></i>
+        <aside class="fw-sidebar sidebar" id="sidebar">
+            <div class="fw-sidebar-logo-container">
+                <div class="fw-sidebar-logo-icon">
+                    <i class="fa-solid fa-bolt"></i>
                 </div>
-                <span style="font-size:1.4rem; font-weight:800; letter-spacing:-0.5px; background:linear-gradient(to right, #fff, #a5b4fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">FuelWise</span>
+                <span class="fw-sidebar-logo-text">FuelWise</span>
             </div>
 
             <!-- Theme Toggle -->
-            <div style="padding: 0 24px 16px 24px;">
-                <button id="themeSwitcher" class="flex items-center justify-between w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-medium">
+            <div style="padding: 0 16px 16px 16px;">
+                <button id="themeSwitcher" class="flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 dark:hover:bg-white/5 transition-all text-xs font-semibold text-gray-400 dark:text-gray-300">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-moon dark-only hidden dark:block"></i>
-                        <i class="fa-solid fa-sun light-only block dark:hidden text-amber-400"></i>
+                        <i class="fa-solid fa-sun light-only block dark:hidden text-amber-500"></i>
                         <span id="themeText">Light Mode</span>
                     </span>
                     <div class="w-8 h-4 bg-gray-600 rounded-full relative">
@@ -66,58 +157,84 @@
                 </button>
             </div>
 
-            <nav class="fw-sidebar-nav">
+            <nav class="fw-sidebar-nav navigation-container">
+                <span class="fw-nav-group-label">Core</span>
                 <a href="{{ url_for('dashboard') }}" class="fw-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                    <i class="fa-solid fa-chart-pie" style="width:24px; text-align:center;"></i><span>Dashboard</span>
+                    <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
                 </a>
                 <a href="{{ url_for('calculator') }}" class="fw-nav-item {% if request.endpoint == 'calculator' %}active{% endif %}">
-                    <i class="fa-solid fa-calculator" style="width:24px; text-align:center;"></i><span>Calculator</span>
+                    <i class="fa-solid fa-calculator"></i><span>Calculator</span>
+                </a>
+
+                <div class="fw-nav-divider"></div>
+                <span class="fw-nav-group-label">Planning</span>
+                <a href="{{ url_for('smart_planner') }}" class="fw-nav-item {% if request.endpoint == 'smart_planner' %}active{% endif %}">
+                    <i class="fa-solid fa-map-location-dot"></i><span>Smart Planner</span>
+                </a>
+                <a href="{{ url_for('campaign_planner') }}" class="fw-nav-item {% if request.endpoint == 'campaign_planner' %}active{% endif %}">
+                    <i class="fa-solid fa-landmark"></i><span>Campaign Planner</span>
                 </a>
                 <a href="{{ url_for('trip_planner') }}" class="fw-nav-item {% if request.endpoint == 'trip_planner' %}active{% endif %}">
-                    <i class="fa-solid fa-route" style="width:24px; text-align:center;"></i><span>Trip Planner</span>
+                    <i class="fa-solid fa-route"></i><span>Trip Planner</span>
                 </a>
-                <a href="{{ url_for('history') }}" class="fw-nav-item {% if request.endpoint == 'history' %}active{% endif %}">
-                    <i class="fa-solid fa-clock-rotate-left" style="width:24px; text-align:center;"></i><span>History</span>
-                </a>
+
+                <div class="fw-nav-divider"></div>
+                <span class="fw-nav-group-label">Fleet</span>
                 <a href="{{ url_for('vehicles') }}" class="fw-nav-item {% if request.endpoint == 'vehicles' %}active{% endif %}">
-                    <i class="fa-solid fa-car-side" style="width:24px; text-align:center;"></i><span>Vehicles</span>
+                    <i class="fa-solid fa-car-side"></i><span>Vehicles</span>
                 </a>
+                <a href="{{ url_for('vehicle_compare') }}" class="fw-nav-item {% if request.endpoint == 'vehicle_compare' %}active{% endif %}">
+                    <i class="fa-solid fa-scale-balanced"></i><span>Compare</span>
+                </a>
+                <a href="{{ url_for('maintenance') }}" class="fw-nav-item {% if request.endpoint == 'maintenance' %}active{% endif %}">
+                    <i class="fa-solid fa-screwdriver-wrench"></i><span>Maintenance</span>
+                </a>
+
+                <div class="fw-nav-divider"></div>
+                <span class="fw-nav-group-label">Records</span>
+                <a href="{{ url_for('history') }}" class="fw-nav-item {% if request.endpoint == 'history' %}active{% endif %}">
+                    <i class="fa-solid fa-clock-rotate-left"></i><span>History</span>
+                </a>
+
+                <div class="fw-nav-divider"></div>
+                <span class="fw-nav-group-label">System</span>
                 <a href="{{ url_for('settings') }}" class="fw-nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
-                    <i class="fa-solid fa-gear" style="width:24px; text-align:center;"></i><span>Settings</span>
+                    <i class="fa-solid fa-gear"></i><span>Settings</span>
                 </a>
             </nav>
 
             {% if user %}
-            <div style="padding:24px 16px; border-top:1px solid var(--border-glass);">
-                <div style="display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.02); border-radius:var(--radius-md); border:1px solid var(--border-glass);">
-                    <div style="width:36px; height:36px; border-radius:50%; background:var(--brand-secondary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem;">
+            <div class="fw-sidebar-profile">
+                <div class="fw-sidebar-profile-card">
+                    <div class="fw-profile-avatar">
                         {{ user.name[0] | upper }}
                     </div>
-                    <div style="flex:1;">
-                        <span style="font-weight:600; font-size:0.9rem; display:block;">{{ user.name }}</span>
-                        <span style="font-size:0.75rem; color:var(--text-muted); display:block;">{{ user.email }}</span>
+                    <div class="fw-profile-info">
+                        <span class="fw-profile-name">{{ user.name }}</span>
+                        <span class="fw-profile-email">{{ user.email }}</span>
                     </div>
-                    <a href="{{ url_for('logout') }}" title="Logout" style="color:var(--text-muted); transition:0.3s; margin-left:auto;">
+                    <a href="{{ url_for('logout') }}" title="Logout" class="fw-profile-logout">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     </a>
                 </div>
             </div>
             {% endif %}
         </aside>
+        <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
         {% endif %}
 
         <!-- MAIN -->
         <main class="main-content">
             {% if request.endpoint not in ['login', 'register'] %}
-            <!-- Mobile Header (Fixed in CSS) -->
-            <div id="mobileHead" style="display:none; padding:16px 20px; border-bottom:1px solid var(--border-glass);">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); display:flex; align-items:center; justify-content:center;">
-                        <i class="fa-solid fa-bolt" style="color:#fff; font-size:0.8rem;"></i>
+            <!-- Mobile Header -->
+            <div id="mobileHead">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-bolt"></i>
                     </div>
-                    <span style="font-weight:800; font-size:1.1rem;">FuelWise</span>
+                    <span class="font-extrabold text-sm tracking-tight">FuelWise</span>
                 </div>
-                <button id="menuToggle" style="background:none; border:none; color:#fff; font-size:1.4rem; cursor:pointer;">
+                <button id="menuToggle">
                     <i class="fa-solid fa-bars-staggered"></i>
                 </button>
             </div>
@@ -130,14 +247,14 @@
     </div>
 
     <!-- TOASTS -->
-    <div id="toastContainer">
+    <div class="toast-container" id="toastContainer">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
-        <div class="fw-toast">
-            {% if category == 'success' %}<i class="fa-solid fa-circle-check" style="color:var(--success);"></i>
-            {% elif category == 'error' %}<i class="fa-solid fa-circle-xmark" style="color:var(--danger);"></i>
-            {% else %}<i class="fa-solid fa-circle-info" style="color:var(--brand-accent);"></i>{% endif %}
+        <div class="fw-toast {{ category }}">
+            {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+            {% elif category == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
+            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
             <span>{{ message }}</span>
         </div>
         {% endfor %}
@@ -152,27 +269,47 @@
             toasts.forEach(t => { 
                 setTimeout(() => { 
                     t.style.transform = "translateX(120%)"; 
-                    t.style.opacity="0"; 
-                    setTimeout(()=>t.remove(), 400); 
+                    t.style.opacity = "0"; 
+                    setTimeout(() => t.remove(), 400); 
                 }, 4000); 
             });
             
-            // Sidebar Toggle Logic
+            // Sidebar Toggle Logic with Backdrop Support
             const btn = document.getElementById("menuToggle");
             const sb = document.getElementById("sidebar");
-            const wrapper = document.querySelector('.layout-wrapper');
+            const backdrop = document.getElementById("sidebarBackdrop");
             
             if(btn && sb) {
+                const toggleSidebar = (show) => {
+                    sb.classList.toggle('open', show);
+                    if (backdrop) backdrop.classList.toggle('active', show);
+                };
+
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    sb.classList.toggle('open');
+                    const isOpen = sb.classList.contains('open');
+                    toggleSidebar(!isOpen);
                 });
+
+                if (backdrop) {
+                    backdrop.addEventListener('click', () => {
+                        toggleSidebar(false);
+                    });
+                }
 
                 // Close sidebar on click outside
                 document.addEventListener('click', (e) => {
                     if (sb.classList.contains('open') && !sb.contains(e.target) && e.target !== btn) {
-                        sb.classList.remove('open');
+                        toggleSidebar(false);
                     }
+                });
+
+                // Auto-close sidebar on link navigation
+                const navLinks = sb.querySelectorAll("a");
+                navLinks.forEach(link => {
+                    link.addEventListener("click", () => {
+                        toggleSidebar(false);
+                    });
                 });
             }
 

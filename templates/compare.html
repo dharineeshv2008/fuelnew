@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="animate-fade-up max-w-5xl mx-auto" id="page-compare">
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Vehicle Comparison</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Compare two vehicles side-by-side across cost, efficiency, and emissions.</p>
+        </div>
+        <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest">Fleet Intelligence</div>
+    </div>
+
+    <!-- Vehicle Selector -->
+    <div class="fw-card mb-8 px-2">
+        <form method="GET" action="{{ url_for('vehicle_compare') }}" class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="flex-1">
+                <label class="fw-label"><i class="fa-solid fa-car text-primary mr-1"></i> Vehicle A</label>
+                <select name="a" class="fw-input">
+                    <option value="">-- Select Vehicle A --</option>
+                    {% for v in vehicles %}
+                    <option value="{{ v.id }}" {% if vid_a == v.id %}selected{% endif %}>{{ v.vehicle_name }} ({{ v.fuel_type }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-center justify-center pb-2">
+                <span class="text-2xl font-black text-gray-300">VS</span>
+            </div>
+            <div class="flex-1">
+                <label class="fw-label"><i class="fa-solid fa-car text-secondary mr-1"></i> Vehicle B</label>
+                <select name="b" class="fw-input">
+                    <option value="">-- Select Vehicle B --</option>
+                    {% for v in vehicles %}
+                    <option value="{{ v.id }}" {% if vid_b == v.id %}selected{% endif %}>{{ v.vehicle_name }} ({{ v.fuel_type }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="fw-btn fw-btn-primary" style="flex-shrink:0;">
+                <i class="fa-solid fa-scale-balanced mr-1"></i> Compare
+            </button>
+        </form>
+    </div>
+
+    {% if comparison %}
+    {% set v_a = comparison.v_a %}
+    {% set v_b = comparison.v_b %}
+    <!-- Comparison Table -->
+    <div class="fw-card">
+        <div class="fw-table-container">
+            <table class="fw-table">
+                <thead>
+                    <tr>
+                        <th class="text-left">Metric</th>
+                        <th class="text-center" style="color:#0F7B53">{{ v_a.vehicle_name }}</th>
+                        <th class="text-center" style="color:#18A06A">{{ v_b.vehicle_name }}</th>
+                        <th class="text-center">Winner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-semibold">Fuel Type</td>
+                        <td class="text-center">{{ v_a.fuel_type }}</td>
+                        <td class="text-center">{{ v_b.fuel_type }}</td>
+                        <td class="text-center text-gray-400">—</td>
+                    </tr>
+                    <tr>
+                        <td class="font-semibold">Mileage</td>
+                        <td class="text-center {% if v_a.mileage >= v_b.mileage %}text-primary font-bold{% endif %}">{{ v_a.mileage }} km/L</td>
+                        <td class="text-center {% if v_b.mileage >= v_a.mileage %}text-primary font-bold{% endif %}">{{ v_b.mileage }} km/L</td>
+                        <td class="text-center text-xs font-bold text-success">
+                            {% if v_a.mileage > v_b.mileage %}{{ v_a.vehicle_name }}
+                            {% elif v_b.mileage > v_a.mileage %}{{ v_b.vehicle_name }}
+                            {% else %}Tie{% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="font-semibold">Cost per km</td>
+                        <td class="text-center {% if comparison.cpkm_a <= comparison.cpkm_b %}text-primary font-bold{% endif %}">{{ format_currency(comparison.cpkm_a) }}</td>
+                        <td class="text-center {% if comparison.cpkm_b <= comparison.cpkm_a %}text-primary font-bold{% endif %}">{{ format_currency(comparison.cpkm_b) }}</td>
+                        <td class="text-center text-xs font-bold text-success">{{ comparison.better_cost }}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-semibold">Monthly Cost <span class="text-xs font-normal text-gray-400">(1000km)</span></td>
+                        <td class="text-center {% if comparison.monthly_cost_a <= comparison.monthly_cost_b %}text-primary font-bold{% endif %}">{{ format_currency(comparison.monthly_cost_a) }}</td>
+                        <td class="text-center {% if comparison.monthly_cost_b <= comparison.monthly_cost_a %}text-primary font-bold{% endif %}">{{ format_currency(comparison.monthly_cost_b) }}</td>
+                        <td class="text-center text-xs font-bold text-success">{{ comparison.better_cost }}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-semibold">Yearly Cost</td>
+                        <td class="text-center {% if comparison.yearly_cost_a <= comparison.yearly_cost_b %}text-primary font-bold{% endif %}">{{ format_currency(comparison.yearly_cost_a) }}</td>
+                        <td class="text-center {% if comparison.yearly_cost_b <= comparison.yearly_cost_a %}text-primary font-bold{% endif %}">{{ format_currency(comparison.yearly_cost_b) }}</td>
+                        <td class="text-center text-xs font-bold text-success">{{ comparison.better_cost }}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-semibold">CO₂ per 100km</td>
+                        <td class="text-center {% if comparison.co2_a <= comparison.co2_b %}text-success font-bold{% endif %}">{{ comparison.co2_a }} kg</td>
+                        <td class="text-center {% if comparison.co2_b <= comparison.co2_a %}text-success font-bold{% endif %}">{{ comparison.co2_b }} kg</td>
+                        <td class="text-center text-xs font-bold text-success">{{ comparison.better_eco }}</td>
+                    </tr>
+                    <tr class="bg-primary/5">
+                        <td class="font-bold">Monthly Savings</td>
+                        <td colspan="2" class="text-center text-lg font-black text-primary">{{ format_currency(comparison.savings_monthly) }} / month</td>
+                        <td class="text-center text-xs font-bold text-success">Choose {{ comparison.better_cost }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% elif vehicles|length < 2 %}
+    <div class="fw-empty-state">
+        <div class="fw-empty-icon"><i class="fa-solid fa-car-side"></i></div>
+        <h4 class="fw-empty-title">Need 2 Vehicles to Compare</h4>
+        <p class="fw-empty-text">Add at least 2 vehicles to your fleet to use the comparison tool.</p>
+        <a href="{{ url_for('vehicles') }}" class="fw-btn fw-btn-primary"><i class="fa-solid fa-plus mr-1"></i> Add Vehicles</a>
+    </div>
+    {% else %}
+    <div class="fw-empty-state">
+        <div class="fw-empty-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+        <h4 class="fw-empty-title">Select Two Vehicles</h4>
+        <p class="fw-empty-text">Choose Vehicle A and Vehicle B above and click Compare to see the analysis.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}

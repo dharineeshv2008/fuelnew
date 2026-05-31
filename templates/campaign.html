@@ -1,0 +1,954 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    /* Premium SaaS-Style Card Styling */
+    .campaign-card {
+        background-color: rgba(16, 26, 20, 0.65);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(24, 160, 106, 0.15);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        transition: border-color 0.3s, box-shadow 0.3s;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    
+    .campaign-card:hover {
+        border-color: rgba(24, 160, 106, 0.3);
+        box-shadow: 0 0 25px rgba(24, 160, 106, 0.15), 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    }
+    
+    [data-theme="light"] .campaign-card {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-color: rgba(15, 123, 83, 0.12);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    }
+    
+    [data-theme="light"] .campaign-card:hover {
+        border-color: rgba(15, 123, 83, 0.25);
+        box-shadow: 0 0 25px rgba(15, 123, 83, 0.08), 0 12px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Fixed Scroll Container for Selector Lists (prevent nested page scroll bugs) */
+    .const-list-container {
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(24, 160, 106, 0.2) transparent;
+    }
+    
+    [data-theme="light"] .const-list-container {
+        background: rgba(0, 0, 0, 0.02);
+        scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    }
+    
+    .const-list-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .const-list-container::-webkit-scrollbar-thumb {
+        background: rgba(24, 160, 106, 0.2);
+        border-radius: 10px;
+    }
+    
+    [data-theme="light"] .const-list-container::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.15);
+    }
+
+    /* Accordion Custom Styling */
+    .district-accordion-item {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 6px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.01);
+        transition: background-color 0.2s;
+    }
+    
+    .district-accordion-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.02);
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
+    }
+    
+    .district-accordion-header:hover {
+        background: var(--bg-surface-hover);
+    }
+    
+    .district-accordion-content {
+        padding: 10px 14px;
+        border-top: 1px solid var(--border-color);
+        background: rgba(0, 0, 0, 0.1);
+    }
+    
+    [data-theme="light"] .district-accordion-content {
+        background: rgba(0, 0, 0, 0.01);
+    }
+
+    .const-item-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .const-item-checkbox:hover {
+        background-color: var(--bg-surface-hover);
+    }
+    
+    .const-item-checkbox input[type="checkbox"] {
+        accent-color: var(--brand-primary);
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        transform: none !important;
+    }
+
+    .chevron-icon {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    /* Strict collapsed state behavior for district selection accordion content */
+    .district-accordion-content.hidden {
+        display: none !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        overflow: hidden !important;
+    }
+
+    /* Custom Leaflet Map styling */
+    #plannerMap {
+        background-color: #0d121d !important;
+        width: 100%;
+        height: 100%;
+        min-height: 440px;
+        border-radius: 12px;
+    }
+    
+    .leaflet-popup-content-wrapper {
+        background: rgba(16, 26, 20, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(24, 160, 106, 0.3) !important;
+        color: #fff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+        font-family: inherit;
+    }
+    
+    .leaflet-popup-content {
+        margin: 12px 16px !important;
+        line-height: 1.4;
+    }
+    
+    .leaflet-popup-tip {
+        background: rgba(16, 26, 20, 0.95) !important;
+        border-left: 1px solid rgba(24, 160, 106, 0.3) !important;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.3) !important;
+    }
+    
+    .leaflet-bar {
+        border: 1px solid rgba(24, 160, 106, 0.25) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        background: rgba(16, 26, 20, 0.9) !important;
+        border-radius: 8px !important;
+        overflow: hidden;
+    }
+    
+    .leaflet-bar a {
+        background: rgba(16, 26, 20, 0.9) !important;
+        color: #2ECC71 !important;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.15) !important;
+        transition: background 0.2s, color 0.2s;
+    }
+    
+    .leaflet-bar a:hover {
+        background: #18A06A !important;
+        color: #fff !important;
+    }
+
+    /* Floating Map Layers Controller */
+    .map-floating-control {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 1000;
+        background: rgba(10, 18, 14, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        padding: 10px 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        max-height: 250px;
+        width: 170px;
+        overflow-y: auto;
+    }
+    
+    .map-floating-control h4 {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #2ECC71;
+        margin-top: 0;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.2);
+        padding-bottom: 4px;
+    }
+    
+    .map-floating-control label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #c8d6e5;
+        margin-bottom: 6px;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .map-floating-control label:last-child {
+        margin-bottom: 0;
+    }
+    
+    .map-floating-control label input {
+        accent-color: #2ECC71;
+        cursor: pointer;
+        width: 12px;
+        height: 12px;
+    }
+
+    /* Map Pulse Animations */
+    .pulse-node {
+        animation: mapNodePulse 2.5s infinite alternate ease-in-out;
+    }
+    
+    @keyframes mapNodePulse {
+        0% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 1px rgba(46,204,113,0.3)); }
+        100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 6px rgba(46,204,113,0.8)); }
+    }
+
+    /* Map search floating control */
+    .map-search-control {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1000;
+        background: rgba(10, 18, 14, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        padding: 6px 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 260px;
+    }
+    
+    .map-search-control input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        width: 100%;
+    }
+    
+    .map-search-control input::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .map-search-control i {
+        color: #2ECC71;
+        font-size: 12px;
+    }
+
+    /* Autocomplete dropdown overlay */
+    #mapSearchResults {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        margin-top: 6px;
+        background: rgba(10, 18, 14, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        max-height: 180px;
+        overflow-y: auto;
+        z-index: 1100;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    
+    .search-result-item {
+        padding: 8px 12px;
+        font-size: 11px;
+        color: #c8d6e5;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.1);
+        transition: background 0.2s, color 0.2s;
+    }
+    
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    
+    .search-result-item:hover {
+        background: rgba(24, 160, 106, 0.15);
+        color: #fff;
+    }
+    
+    .search-result-type {
+        font-size: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #2ECC71;
+        background: rgba(46, 204, 113, 0.1);
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    /* Map actions overlay control */
+    .map-actions-control {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        z-index: 1000;
+        background: rgba(10, 18, 14, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        padding: 8px 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .map-actions-control button {
+        background: rgba(24, 160, 106, 0.1);
+        border: 1px solid rgba(24, 160, 106, 0.3);
+        border-radius: 6px;
+        color: #2ECC71;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 5px 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    
+    .map-actions-control button:hover {
+        background: #18A06A;
+        color: #fff;
+        border-color: #18A06A;
+    }
+
+    .map-actions-control select {
+        background: #0d121d;
+        border: 1px solid rgba(24, 160, 106, 0.3);
+        border-radius: 6px;
+        color: #2ECC71;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 4px 8px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    /* Cartographic text styling */
+    .border-label {
+        background: transparent !important;
+        border: none !important;
+        color: rgba(255,255,255,0.3) !important;
+        font-size: 9px !important;
+        font-weight: bold !important;
+        letter-spacing: 0.15em !important;
+        box-shadow: none !important;
+        text-shadow: 0 0 4px #000;
+        pointer-events: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-up max-w-7xl mx-auto" id="page-campaign">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Campaign & Tour Planner</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Plan constituency tours, district coverage and fuel cost analysis.</p>
+        </div>
+        <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm shadow-primary/5 flex-shrink-0">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            Political Campaign Intelligence
+        </div>
+    </div>
+
+    <!-- Main Campaign Planner Form -->
+    <form method="POST" id="campaignForm">
+        <input type="hidden" name="tab" id="tabInput" value="{{ active_tab }}">
+        <!-- Hidden core variables synchronized from active parameters -->
+        <input type="hidden" name="mileage" id="formMileage" value="15">
+        <input type="hidden" name="fuel_price" id="formFuelPrice" value="{{ session.get('price_petrol', 102.0) }}">
+        
+        <!-- MAIN WORKSPACE: 3-Column Grid (25% / 50% / 25%) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2 mb-8 items-stretch">
+            
+            <!-- LEFT PANEL: Campaign Selection Center (lg:col-span-3) -->
+            <details class="group mobile-collapsible-card campaign-card lg:col-span-3 h-auto lg:h-[700px] flex flex-col order-2 lg:order-1" open>
+                <summary class="mobile-collapsible-summary">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">{% if active_tab == 'constituency' %}Constituency Selection{% else %}District Selection{% endif %}</h3>
+                    </div>
+                    <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
+                </summary>
+                <div class="mobile-collapsible-content flex flex-col flex-1 min-h-0 pt-4">
+                    <!-- Horizontal Clean Tab Switcher -->
+                    <div id="campaignTabs" class="flex gap-1 bg-gray-100 dark:bg-white/5 rounded-2xl p-1 mb-4 w-full flex-shrink-0">
+                        <a href="?tab=constituency" class="flex-1 text-center py-2 px-3 rounded-xl text-xs font-bold transition-all {% if active_tab == 'constituency' %}bg-primary text-white shadow{% else %}text-gray-500 hover:text-gray-700 dark:hover:text-gray-300{% endif %}">
+                            <i class="fa-solid fa-landmark mr-1"></i> Constituencies
+                        </a>
+                        <a href="?tab=district" class="flex-1 text-center py-2 px-3 rounded-xl text-xs font-bold transition-all {% if active_tab == 'district' %}bg-primary text-white shadow{% else %}text-gray-500 hover:text-gray-700 dark:hover:text-gray-300{% endif %}">
+                            <i class="fa-solid fa-map mr-1"></i> Districts
+                        </a>
+                    </div>
+
+                    {% if active_tab == 'constituency' %}
+                    <!-- Search Input -->
+                    <div class="relative mb-3 flex-shrink-0">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="text" id="constSearch" placeholder="Search districts or constituencies..." class="fw-input pl-9 mb-0" oninput="applyAccordionFilters()">
+                    </div>
+
+                    <!-- District Filter Dropdown -->
+                    <div class="mb-3 flex-shrink-0">
+                        <select id="districtFilter" class="fw-input" onchange="applyAccordionFilters()">
+                            <option value="">All Districts</option>
+                            {% for district, group in constituencies | groupby('district') %}
+                            <option value="{{ district }}">{{ district }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Quick Select Buttons -->
+                    <div class="flex flex-wrap gap-1.5 mb-3 flex-shrink-0">
+                        <button type="button" onclick="quickSelectConst(10)" class="px-2 py-1 text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all">Top 10</button>
+                        <button type="button" onclick="quickSelectConst(25)" class="px-2 py-1 text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all">25</button>
+                        <button type="button" onclick="quickSelectConst(50)" class="px-2 py-1 text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all">50</button>
+                        <button type="button" onclick="quickSelectConst(100)" class="px-2 py-1 text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all">100</button>
+                        <button type="button" onclick="quickSelectConst(234)" class="px-2 py-1 text-[9px] font-bold bg-success/10 text-success border border-success/20 rounded-lg hover:bg-success hover:text-white transition-all">All 234</button>
+                        <button type="button" onclick="clearAll()" class="px-2 py-1 text-[9px] font-bold bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition-all">Clear</button>
+                    </div>
+
+                    <!-- Constituency Accordion List -->
+                    <div class="const-list-container flex-1 min-h-0 overflow-y-auto mb-2 pr-1">
+                        <div class="space-y-1">
+                            {% for district, group in constituencies | groupby('district') %}
+                            {% set dist_id = district | replace(' ', '-') | replace("'", "") %}
+                            <div class="district-accordion-item" id="district-item-{{ dist_id }}">
+                                <!-- Accordion Header -->
+                                <div class="district-accordion-header" onclick="toggleAccordion('{{ dist_id }}')">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-chevron-right chevron-icon text-[10px] text-gray-400" id="icon-{{ dist_id }}"></i>
+                                        <span class="text-xs font-bold text-gray-700 dark:text-gray-200">{{ district }}</span>
+                                        <span class="px-1.5 py-0.5 bg-primary/10 text-primary text-[8px] font-bold rounded-full">({{ group|length }})</span>
+                                    </div>
+                                    <!-- Accordion controls -->
+                                    <div class="flex gap-2" onclick="event.stopPropagation();">
+                                        <button type="button" onclick="selectDistrictConsts('{{ dist_id }}', true)" class="text-[9px] font-bold text-primary hover:underline">All</button>
+                                        <span class="text-gray-400 text-[9px]">•</span>
+                                        <button type="button" onclick="selectDistrictConsts('{{ dist_id }}', false)" class="text-[9px] font-bold text-red-500 hover:underline">Clear</button>
+                                    </div>
+                                </div>
+                                <!-- Accordion Content (Initially Hidden) -->
+                                <div id="content-{{ dist_id }}" class="district-accordion-content hidden space-y-1">
+                                    {% for c in group %}
+                                    {% set is_selected = false %}
+                                    {% if result and result.type == 'constituency' %}
+                                        {% for sc in result.constituencies %}
+                                            {% if sc.id == c.id %}{% set is_selected = true %}{% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    <label class="const-item-checkbox" data-name="{{ c.name }} {{ district }}">
+                                        <input type="checkbox" name="constituency_ids[]" value="{{ c.id }}" class="const-check" data-district-id="{{ dist_id }}" onchange="updateCount(this)" {% if is_selected %}checked{% endif %}>
+                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ c.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Sticky Selection Summary -->
+                    <div class="mt-auto pt-3 border-t border-gray-100 dark:border-white/5 flex items-center justify-between flex-shrink-0">
+                        <span class="text-xs text-gray-400 font-semibold" id="selectedCountLabel">Selected: 0 Constituencies, 0 Districts</span>
+                    </div>
+
+                    {% else %}
+                    <!-- District Selection Tab Content -->
+                    <!-- Search Input -->
+                    <div class="relative mb-3 flex-shrink-0">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="text" id="constSearch" placeholder="Search districts..." class="fw-input pl-9 mb-0" oninput="applyDistrictFilters()">
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5 mb-3 flex-shrink-0">
+                        <button type="button" onclick="quickSelectDist(5)" class="px-2 py-1 text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all">5 Dist</button>
+                        <button type="button" onclick="quickSelectDist(10)" class="px-2 py-1 text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all">10</button>
+                        <button type="button" onclick="quickSelectDist(20)" class="px-2 py-1 text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all">20</button>
+                        <button type="button" onclick="quickSelectDist(38)" class="px-2 py-1 text-[9px] font-bold bg-success/10 text-success border border-success/20 rounded-lg hover:bg-success hover:text-white transition-all">All 38</button>
+                        <button type="button" onclick="clearDistAll()" class="px-2 py-1 text-[9px] font-bold bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition-all">Clear</button>
+                    </div>
+
+                    <!-- Districts Scroll List -->
+                    <div class="const-list-container flex-1 min-h-0 overflow-y-auto mb-2 pr-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2" id="districtGrid">
+                            {% for d in districts %}
+                            {% set is_dist_selected = false %}
+                            {% if result and result.type == 'district' %}
+                                {% for sd in result.districts %}
+                                    {% if sd.id == d.id %}{% set is_dist_selected = true %}{% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <label class="const-item-checkbox" data-name="{{ d.name }}">
+                                <input type="checkbox" name="district_ids[]" value="{{ d.id }}" class="dist-check" onchange="updateDistCount(this)" {% if is_dist_selected %}checked{% endif %}>
+                                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ d.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Sticky Selection Summary -->
+                    <div class="mt-auto pt-3 border-t border-gray-100 dark:border-white/5 flex items-center justify-between flex-shrink-0">
+                        <span class="text-xs text-gray-400 font-semibold" id="selectedCountLabel">Selected: 0 Districts</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </details>
+
+            <!-- CENTER PANEL: Route Intelligence Center (lg:col-span-6) -->
+            <div class="campaign-card lg:col-span-6 h-[50vh] sm:h-[55vh] lg:h-[700px] flex flex-col relative order-1 lg:order-2">
+                <div class="flex items-center justify-between gap-3 mb-4 pb-2 border-b border-gray-100 dark:border-white/5 flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                        <h3 class="text-lg font-bold">Route Intelligence Center</h3>
+                    </div>
+                    
+                    <div class="flex gap-2 flex-shrink-0">
+                        <div id="readyBadge" class="px-2.5 py-0.5 bg-success/10 text-success text-[10px] font-bold uppercase tracking-wider rounded-lg border border-success/20 {% if not result %}hidden{% endif %}">
+                            <i class="fa-solid fa-circle-check mr-1"></i> Optimized Route
+                        </div>
+                        <div id="estimateBadge" class="px-2.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-lg border border-primary/20 hidden">
+                            <i class="fa-solid fa-calculator mr-1"></i> Live Estimate
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaflet GIS Map Container -->
+                <div class="flex-1 min-h-0 relative rounded-xl overflow-hidden border border-gray-200 dark:border-white/5 bg-gray-950/20 dark:bg-black/40">
+                    <!-- GIS Loading Skeleton Overlay -->
+                    <div id="mapSkeleton" class="absolute inset-0 z-[2000] bg-[#0d121d] flex flex-col items-center justify-center gap-4 transition-opacity duration-500">
+                        <div class="relative w-12 h-12">
+                            <div class="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                        </div>
+                        <div class="text-[9px] font-bold text-primary tracking-widest uppercase animate-pulse">Initializing GIS Engine...</div>
+                    </div>
+
+                    <!-- Floating Search Control -->
+                    <div class="map-search-control">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="mapSearchInput" placeholder="Search District, Constituency, City..." oninput="handleMapSearch(this.value)" autocomplete="off">
+                        <div id="mapSearchResults" class="hidden"></div>
+                    </div>
+
+                    <!-- Floating District Zoom Box -->
+                    <div class="absolute bottom-4 left-4 z-[1000] bg-gray-950/90 border border-gray-200 dark:border-white/10 rounded-xl p-1.5 shadow-lg max-w-[160px]">
+                        <select id="districtZoomSelect" onchange="zoomToDistrictGIS(this.value)" class="bg-transparent text-white text-xs border-none outline-none font-bold cursor-pointer py-1 px-2 w-full">
+                            <option value="" class="bg-gray-950 text-white">Zoom to District</option>
+                            {% for d in districts %}
+                            <option value="{{ d.id }}" class="bg-gray-950 text-white">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Floating Map Action Circle Buttons -->
+                    <div class="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
+                        <button type="button" onclick="locateUser()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-[#2ECC71] border border-[#2ECC71]/25 flex items-center justify-center shadow-lg" title="Locate Me">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                        </button>
+                        <button type="button" onclick="resetMapZoom()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-primary border border-primary/25 flex items-center justify-center shadow-lg" title="Reset View">
+                            <i class="fa-solid fa-arrows-to-eye"></i>
+                        </button>
+                        <button type="button" onclick="clearCampaignRoute()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-red-500 border border-red-500/25 flex items-center justify-center shadow-lg" title="Clear Route">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        <button type="button" onclick="submitCampaignForm()" class="map-circle-btn w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center shadow-lg" title="Run Campaign Route">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                    </div>
+
+                    <div id="plannerMap"></div>
+                    
+                    <!-- Floating Layer Toggle Button -->
+                    <button type="button" id="gisLayerToggleBtn" class="gis-layer-toggle-btn">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </button>
+
+                    <!-- Floating GIS Layer Controller -->
+                    <div class="map-floating-control">
+                        <h4>GIS Layers</h4>
+                        <label><input type="checkbox" id="layerHighways" checked onchange="toggleMapLayer('highways')"> Road Networks</label>
+                        <label><input type="checkbox" id="layerDistricts" checked onchange="toggleMapLayer('districts')"> District HQs</label>
+                        <label><input type="checkbox" id="layerConstituencies" checked onchange="toggleMapLayer('constituencies')"> Constituencies</label>
+                        <label><input type="checkbox" id="layerGovernment" checked onchange="toggleMapLayer('government')"> Collectorates</label>
+                        <label><input type="checkbox" id="layerTransport" checked onchange="toggleMapLayer('transport')"> Transport Hubs</label>
+                        <label><input type="checkbox" id="layerHospitals" checked onchange="toggleMapLayer('hospitals')"> Hospitals</label>
+                        <label><input type="checkbox" id="layerTemples" checked onchange="toggleMapLayer('temples')"> Temples/Tourism</label>
+                    </div>
+                </div>
+
+                <!-- Unified Statistics Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mt-4 flex-shrink-0">
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
+                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5" id="statsStopsLabel">Stops</p>
+                        <p class="text-[11px] font-black text-white" id="statsStopsVal">
+                            {% if result %}{{ result.route|length }}{% else %}0{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
+                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Distance</p>
+                        <p class="text-[11px] font-black text-primary" id="statsDistVal">
+                            {% if result %}{{ result.total_km }} km{% else %}0 km{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
+                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Fuel</p>
+                        <p class="text-[11px] font-black text-secondary" id="statsFuelVal">
+                            {% if result %}{{ result.fuel_needed }} L{% else %}0 L{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
+                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Cost</p>
+                        <p class="text-[11px] font-black text-warning" id="statsCostVal">
+                            {% if result %}{{ result.currency }}{{ "{:,.0f}".format(result.total_cost) }}{% else %}₹0{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
+                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Days</p>
+                        <p class="text-[11px] font-black text-white" id="statsDaysVal">
+                            {% if result %}{{ result.days }}{% else %}0{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Controller & Schedule (lg:col-span-3) -->
+            <details class="group mobile-collapsible-card campaign-card lg:col-span-3 h-auto lg:h-[700px] flex flex-col order-3 lg:order-3" open>
+                <summary class="mobile-collapsible-summary">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-4 bg-secondary rounded-full"></div>
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white">Route Controller & Schedule</h3>
+                    </div>
+                    <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
+                </summary>
+                <div class="mobile-collapsible-content flex flex-col flex-1 min-h-0 pt-4 justify-between gap-6">
+                    <!-- Vehicle Parameters Profile & Selection (top portion) -->
+                    <div class="flex flex-col min-h-0 flex-shrink-0">
+                        <div class="flex items-center gap-3 mb-3 pb-2 border-b border-gray-100 dark:border-white/5">
+                            <div class="w-1.5 h-4 bg-secondary rounded-full"></div>
+                            <h3 class="text-sm font-bold">Vehicle Parameters</h3>
+                        </div>
+
+                        <!-- Vehicle Dropdown Selection -->
+                        <div class="mb-3">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Vehicle Profile</label>
+                            <select id="vehicleSelector" class="fw-input py-1.5 px-3 text-xs" onchange="selectVehicle(this.value)">
+                                <option value="">-- Custom Parameters --</option>
+                                {% for v in vehicles %}
+                                <option value="{{ v.id }}">{{ v.vehicle_name }} ({{ v.fuel_type }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Fuel Parameter Tabs -->
+                        <div class="flex gap-1 bg-gray-100 dark:bg-white/5 rounded-xl p-1 mb-3 text-[10px] font-bold w-full">
+                            <button type="button" id="fuelTabPetrol" onclick="switchFuelType('Petrol')" class="flex-1 py-1 rounded-lg text-center transition-all bg-primary text-white">Petrol</button>
+                            <button type="button" id="fuelTabDiesel" onclick="switchFuelType('Diesel')" class="flex-1 py-1 rounded-lg text-center transition-all text-gray-400 hover:text-white">Diesel</button>
+                            <button type="button" id="fuelTabElectric" onclick="switchFuelType('Electric')" class="flex-1 py-1 rounded-lg text-center transition-all text-gray-400 hover:text-white">Electric</button>
+                            <button type="button" id="fuelTabCNG" onclick="switchFuelType('CNG')" class="flex-1 py-1 rounded-lg text-center transition-all text-gray-400 hover:text-white">CNG</button>
+                        </div>
+
+                        <!-- Dynamic Input Fields -->
+                        <div id="paramsPetrol" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Mileage (km/L)</label>
+                                    <input type="number" id="petrolMileage" value="15" step="0.1" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Price (₹/L)</label>
+                                    <input type="number" id="petrolPrice" value="{{ session.get('price_petrol', 102.0) }}" step="0.01" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="paramsDiesel" class="space-y-3 hidden">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Mileage (km/L)</label>
+                                    <input type="number" id="dieselMileage" value="18" step="0.1" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Price (₹/L)</label>
+                                    <input type="number" id="dieselPrice" value="{{ session.get('price_diesel', 89.0) }}" step="0.01" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="paramsElectric" class="space-y-3 hidden">
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Range (km)</label>
+                                    <input type="number" id="evRange" value="350" step="1" class="fw-input py-1.5 px-2 text-[10px]" oninput="syncVehicleInputs()" required>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Batt (kWh)</label>
+                                    <input type="number" id="evBattery" value="60" step="1" class="fw-input py-1.5 px-2 text-[10px]" oninput="syncVehicleInputs()" required>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Cost/kWh</label>
+                                    <input type="number" id="evPrice" value="{{ session.get('price_ev', 8.0) }}" step="0.1" class="fw-input py-1.5 px-2 text-[10px]" oninput="syncVehicleInputs()" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="paramsCNG" class="space-y-3 hidden">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Mileage (km/kg)</label>
+                                    <input type="number" id="cngMileage" value="20" step="0.1" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Gas Price</label>
+                                    <input type="number" id="cngPrice" value="{{ session.get('price_cng', 75.0) }}" step="0.01" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Optimal Route button (middle position) -->
+                    <div class="py-2.5 flex-shrink-0">
+                        <button type="submit" class="fw-btn fw-btn-primary w-full py-2.5 text-xs" disabled>
+                            <i class="fa-solid fa-route mr-2"></i>
+                            Generate Optimal Route
+                        </button>
+                    </div>
+
+                    <!-- Campaign Tour Schedule (bottom portion) -->
+                    <div class="flex-1 min-h-0 flex flex-col border-t border-gray-100 dark:border-white/5 pt-3">
+                        <div class="flex items-center gap-3 mb-2 flex-shrink-0">
+                            <div class="w-1.5 h-4 bg-warning rounded-full"></div>
+                            <h3 class="text-xs font-bold text-gray-900 dark:text-white">Campaign Tour Schedule</h3>
+                        </div>
+
+                        <div id="tourScheduleWrapper" class="flex-1 overflow-y-auto pr-1 max-h-[300px] lg:max-h-none" style="scrollbar-width: thin;">
+                            {% if result %}
+                            <div class="space-y-2">
+                                {% set stops_per_day = ((result.route|length) / result.days)|round(0, 'ceil')|int %}
+                                {% if stops_per_day < 1 %}{% set stops_per_day = 1 %}{% endif %}
+                                
+                                {# Pre-group stops by day for the accordion structure #}
+                                {% for day_idx in range(result.days) %}
+                                {% set day_number = day_idx + 1 %}
+                                {% set day_stops = [] %}
+                                {% for stop in result.route %}
+                                    {% if (loop.index0 / stops_per_day)|int == day_idx %}
+                                        {% set _ = day_stops.append(stop) %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if day_stops|length > 0 %}
+                                <div class="border border-gray-100 dark:border-white/5 rounded-xl overflow-hidden bg-gray-50 dark:bg-white/5 mb-2">
+                                    <details class="group" {% if day_idx == 0 %}open{% endif %}>
+                                        <summary class="flex items-center justify-between py-2 px-3 font-semibold text-xs cursor-pointer select-none bg-primary/5 text-primary">
+                                            <span>Day {{ day_number }} Plan ({{ day_stops|length }} stops)</span>
+                                            <i class="fa-solid fa-chevron-down text-[9px] text-gray-400 transition-transform group-open:rotate-180"></i>
+                                        </summary>
+                                        <div class="p-3 border-t border-gray-100 dark:border-white/5 space-y-2">
+                                            {% for stop in day_stops %}
+                                            {% set overall_idx = (day_idx * stops_per_day) + loop.index0 %}
+                                            {% set is_first_overall = overall_idx == 0 %}
+                                            {% set is_last_overall = overall_idx == (result.route|length - 1) %}
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-4 h-4 rounded-full {% if is_first_overall %}bg-primary{% elif is_last_overall %}bg-red-500{% else %}bg-secondary{% endif %} flex items-center justify-center text-white text-[7px] font-bold flex-shrink-0">
+                                                    {% if is_first_overall %}<i class="fa-solid fa-flag text-[6px]"></i>
+                                                    {% elif is_last_overall %}<i class="fa-solid fa-map-pin text-[6px]"></i>
+                                                    {% else %}{{ overall_idx + 1 }}{% endif %}
+                                                </div>
+                                                <div class="flex-1 py-1 px-2 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-lg flex justify-between items-center min-w-0">
+                                                    <span class="font-semibold text-[9px] text-gray-700 dark:text-gray-300 truncate" title="{{ stop }}">{{ stop }}</span>
+                                                    {% if is_first_overall %}
+                                                    <span class="text-[6px] font-bold uppercase text-primary">Start</span>
+                                                    {% elif is_last_overall %}
+                                                    <span class="text-[6px] font-bold uppercase text-red-500">End</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% if not loop.last %}
+                                            <div class="ml-2 w-px h-1 bg-gray-200 dark:bg-white/10"></div>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="flex-1 flex flex-col items-center justify-center text-center p-4">
+                                <div class="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-base mb-2">
+                                    <i class="fa-solid fa-route"></i>
+                                </div>
+                                <p class="text-[10px] text-gray-400 max-w-[180px] leading-normal">Select districts or constituencies and click Generate Route.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </details>  </div>
+        </div>
+        </div>
+
+        <!-- THIRD ROW: Campaign Analytics (Full Width) -->
+        <div class="px-2 mb-8" id="campaignAnalyticsContainer">
+            <details class="group mobile-collapsible-card campaign-card" open>
+                <summary class="mobile-collapsible-summary flex items-center justify-between cursor-pointer select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Campaign Analytics</h3>
+                    </div>
+                    <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
+                </summary>
+                <div class="mobile-collapsible-content pt-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        <!-- Dist Covered -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Districts</p>
+                            <p class="text-lg font-black text-white" id="statDistricts">
+                                {% if result %}
+                                    {{ result.route|length if result.type == 'district' else result.constituencies|map(attribute='district')|unique|list|length }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </p>
+                        </div>
+                        <!-- Const Covered -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Constituencies</p>
+                            <p class="text-lg font-black text-white" id="statConstituencies">
+                                {% if result %}
+                                    {{ result.selected_count if result.type == 'constituency' else '-' }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </p>
+                        </div>
+                        <!-- Total Distance -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Distance</p>
+                            <p class="text-lg font-black text-primary" id="statTotalKm">{{ result.total_km if result else 0 }} km</p>
+                        </div>
+                        <!-- Fuel Required -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Fuel Required</p>
+                            <p class="text-lg font-black text-secondary" id="statFuel">{{ result.fuel_needed if result else 0 }} L</p>
+                        </div>
+                        <!-- Estimated Cost -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Estimated Cost</p>
+                            <p class="text-lg font-black text-warning" id="statCost">{{ result.currency if result else '₹' }}{{ "{:,.0f}".format(result.total_cost) if result else 0 }}</p>
+                        </div>
+                        <!-- Days -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Estimated Days</p>
+                            <p class="text-lg font-black text-white" id="statDays">{{ result.days if result else 0 }}</p>
+                        </div>
+                        <!-- Coverage % -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Coverage %</p>
+                            <p class="text-lg font-black text-accent" id="statCoverage">
+                                {% if result %}
+                                    {% if result.type == 'constituency' %}
+                                        {{ "%.1f"|format((result.selected_count / 234) * 100) }}%
+                                    {% else %}
+                                        {{ "%.1f"|format((result.selected_count / 38) * 100) }}%
+                                    {% endif %}
+                                {% else %}
+                                    0.0%
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>    </div>
+    </form>
+</div>
+
+<script>
+    window.allDistricts = {{ districts | tojson }};
+    window.allConstituencies = {{ constituencies | tojson }};
+    window.routeStops = {{ result.route | tojson if result else '[]' }};
+    window.routeType = "{{ result.type if result else '' }}";
+    window.vehiclesData = {{ vehicles | tojson }};
+    window.sessionCurrency = "{{ session.get('currency', '₹') }}";
+    window.currentFuelType = 'Petrol';
+
+    // Server values for initial render
+    window.serverTotalKm = {{ result.total_km if result else 0 }};
+    window.serverFuelNeeded = {{ result.fuel_needed if result else 0 }};
+    window.serverTotalCost = {{ result.total_cost if result else 0 }};
+    window.serverDays = {{ result.days if result else 0 }};
+    window.serverCurrency = "{{ result.currency if result else '₹' }}";
+    window.serverDistrictCount = {% if result %}{{ result.route|length if result.type == 'district' else result.constituencies|map(attribute='district')|unique|list|length }}{% else %}0{% endif %};
+</script>
+<script src="{{ url_for('static', filename='js/route-cache.js') }}"></script>
+<script src="{{ url_for('static', filename='js/routing-provider.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map-service.js') }}"></script>
+<script src="{{ url_for('static', filename='js/campaign-map.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        window.initCampaignMap();
+    });
+</script>
+{% endblock content %}

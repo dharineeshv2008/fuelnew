@@ -3,108 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | FuelWise - Smart Fuel Management</title>
+    <title>Sign In | FuelWise — Smart Fleet & Fuel Intelligence</title>
     
-    <!-- Fonts -->
+    <!-- Fonts (Plus Jakarta Sans & Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Icons -->
+    <!-- Icons (FontAwesome) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <!-- Premium Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth_premium.css') }}">
+    
+    <script>
+        // Init theme immediately to prevent flashing
+        (function() {
+            const savedTheme = localStorage.getItem('fw-theme') || 'light';
+            document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
 
     <div class="auth-wrapper">
-        <!-- Hero Section -->
+        <!-- Theme Toggle Button -->
+        <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
+            <i class="fa-solid fa-moon dark-only"></i>
+            <i class="fa-solid fa-sun light-only"></i>
+        </button>
+
+        <!-- Left Showcase Panel (Desktop/Tablet Only) -->
         <div class="auth-hero">
-            <img src="{{ url_for('static', filename='img/auth_hero.png') }}" alt="FuelWise Hero" class="auth-hero-img">
+            <div class="auth-hero-decorations">
+                <div class="auth-hero-grid"></div>
+                <div class="auth-hero-glow"></div>
+            </div>
             
-            <div class="auth-hero-content">
-                <div class="auth-hero-logo">
-                    <i class="fa-solid fa-gas-pump"></i>
-                    <span>FuelWise</span>
-                </div>
-                <h2>Smart Fuel.<br>Smarter Savings.</h2>
-                <p>Monitor your fuel efficiency, plan long-distance trips, and save money with our ultra-precise calculator and real-time tracking.</p>
+            <div class="auth-hero-top">
+                <a href="/" class="brand-logo">
+                    <div class="brand-logo-icon">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <span class="brand-logo-text">FuelWise</span>
+                </a>
             </div>
 
-            <div class="auth-trust-badge">
-                <i class="fa-solid fa-car-side"></i>
-                <span>Trusted by smart drivers 🚗</span>
+            <div class="auth-hero-center">
+                <h2>Smart Fuel.<br><span>Smarter Planning.</span></h2>
+                <p>Track fuel expenses, optimize travel routes, manage fleet maintenance schedules, and plan highly intelligent campaign journeys.</p>
+                
+                <!-- Premium Animated SVG Illustration -->
+                <div class="hero-illustration-container">
+                    <svg class="hero-svg" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Chart Lines (Fleet Analytics) -->
+                        <g opacity="0.15">
+                            <line x1="50" y1="50" x2="450" y2="50" stroke="var(--text)" stroke-width="1.5" stroke-dasharray="4 4" />
+                            <line x1="50" y1="150" x2="450" y2="150" stroke="var(--text)" stroke-width="1.5" stroke-dasharray="4 4" />
+                            <line x1="50" y1="250" x2="450" y2="250" stroke="var(--text)" stroke-width="1.5" stroke-dasharray="4 4" />
+                            <line x1="50" y1="350" x2="450" y2="350" stroke="var(--text)" stroke-width="1.5" stroke-dasharray="4 4" />
+                            
+                            <line x1="50" y1="50" x2="50" y2="350" stroke="var(--text)" stroke-width="1.5" />
+                            <line x1="183" y1="50" x2="183" y2="350" stroke="var(--text)" stroke-width="1.5" />
+                            <line x1="316" y1="50" x2="316" y2="350" stroke="var(--text)" stroke-width="1.5" />
+                            <line x1="450" y1="50" x2="450" y2="350" stroke="var(--text)" stroke-width="1.5" />
+                        </g>
+                        
+                        <!-- Grid Analytics Bar Graphs -->
+                        <path d="M70,330 L120,290 L170,310 L220,240 L270,260 L320,180 L370,220 L420,140" stroke="rgba(46, 204, 113, 0.45)" stroke-width="3" stroke-linecap="round" />
+                        <path d="M70,330 L120,290 L170,310 L220,240 L270,260 L320,180 L370,220 L420,140 L420,350 L70,350 Z" fill="url(#chartGrad)" opacity="0.08" />
+                        
+                        <!-- Dynamic Route Path Line -->
+                        <path d="M100,280 Q200,100 300,240 T420,120" stroke="url(#heroLineGrad)" stroke-width="4" stroke-linecap="round" opacity="0.3" />
+                        <path class="animated-path" d="M100,280 Q200,100 300,240 T420,120" stroke="url(#heroLineGrad)" stroke-width="4" stroke-linecap="round" />
+                        <path d="M100,280 Q200,100 300,240 T420,120" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 12" opacity="0.25" />
+                        
+                        <!-- Waypoint Cities Nodes -->
+                        <circle cx="100" cy="280" r="9" fill="#0F7B53" stroke="#FFFFFF" stroke-width="2.5" class="node-glow" />
+                        <circle cx="218" cy="180" r="9" fill="#18A06A" stroke="#FFFFFF" stroke-width="2.5" class="node-glow" />
+                        <circle cx="308" cy="235" r="9" fill="#2ECC71" stroke="#FFFFFF" stroke-width="2.5" class="node-glow" />
+                        <circle cx="420" cy="120" r="9" fill="#2ECC71" stroke="#FFFFFF" stroke-width="2.5" class="node-glow" />
+                        
+                        <!-- Animated Vehicle Marker -->
+                        <g class="vehicle-marker">
+                            <circle cx="0" cy="0" r="6" fill="#FFFFFF" />
+                            <circle cx="0" cy="0" r="14" stroke="#2ECC71" stroke-width="2" opacity="0.75" class="pulse-ring" />
+                        </g>
+                        
+                        <defs>
+                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#2ECC71"/>
+                                <stop offset="100%" stop-color="#2ECC71" stop-opacity="0"/>
+                            </linearGradient>
+                            <linearGradient id="heroLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#0F7B53" />
+                                <stop offset="50%" stop-color="#18A06A" />
+                                <stop offset="100%" stop-color="#2ECC71" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="auth-hero-bottom">
+                <div class="trust-badges">
+                    <div class="trust-badge-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Secure Auth</span>
+                    </div>
+                    <div class="trust-badge-item">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Privacy Protected</span>
+                    </div>
+                    <div class="trust-badge-item">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>256-bit Encryption</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Auth Section -->
+        <!-- Right Side: Form Card Section -->
         <div class="auth-section">
+            <div class="auth-bg-grid"></div>
+            <div class="glow-orb orb-1"></div>
+            <div class="glow-orb orb-2"></div>
+            
             <div class="auth-card">
+                <!-- Mobile Branding Logo -->
+                <a href="/" class="mobile-logo">
+                    <div class="brand-logo-icon">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <span>FuelWise</span>
+                </a>
+
                 <div class="auth-header">
                     <h1>Welcome Back</h1>
-                    <p>Enter your credentials to access your dashboard</p>
+                    <p>Enter your details to access travel intelligence</p>
                 </div>
 
-                <!-- Social Login (UI Only) -->
+                <!-- Social Sign In Grid (UI Only) -->
                 <div class="social-grid">
-                    <button type="button" class="btn-social">
+                    <button type="button" class="btn-social google">
                         <i class="fa-brands fa-google"></i>
                         <span>Google</span>
                     </button>
-                    <button type="button" class="btn-social">
+                    <button type="button" class="btn-social github">
                         <i class="fa-brands fa-github"></i>
                         <span>GitHub</span>
                     </button>
                 </div>
 
                 <div class="divider">
-                    <span>or continue with email</span>
+                    <span>or sign in with email</span>
                 </div>
 
                 <form action="{{ url_for('login') }}" method="POST" id="authForm" novalidate>
-                    <div class="form-group">
+                    <!-- Email input with floating label -->
+                    <div class="form-group floating-group">
+                        <input type="email" id="email" name="email" class="input-field" placeholder=" " required autocomplete="email">
                         <label for="email" class="field-label">Email Address</label>
-                        <input type="email" id="email" name="email" class="input-field" placeholder="john@example.com" required autocomplete="email">
                     </div>
 
-                    <div class="form-group" style="position: relative;">
+                    <!-- Password input with floating label & toggle -->
+                    <div class="form-group floating-group" style="margin-bottom: 16px;">
+                        <input type="password" id="password" name="password" class="input-field" placeholder=" " required autocomplete="current-password">
                         <label for="password" class="field-label">Password</label>
-                        <input type="password" id="password" name="password" class="input-field" placeholder="••••••••" required autocomplete="current-password">
-                        <button type="button" class="password-toggle" id="togglePassword" style="top: 40px;">
+                        <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle Password Visibility">
                             <i class="fa-solid fa-eye" id="eyeIcon"></i>
                         </button>
                     </div>
 
-                    <a href="#" class="forgot-link">Forgot password?</a>
-
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="remember" name="remember">
-                        <label for="remember">Remember me for 30 days</label>
+                    <!-- Action actions (Forgot & Remember Me) -->
+                    <div class="form-actions-row">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="remember" name="remember">
+                            <label for="remember">Remember me</label>
+                        </div>
+                        <a href="#" class="forgot-link" onclick="event.preventDefault(); alert('Demo environment: Simply login with any credentials.');">Forgot Password?</a>
                     </div>
 
+                    <!-- Continue / Sign In Button -->
                     <button type="submit" class="btn-premium" id="submitBtn">
-                        <span class="btn-text">Sign In Now</span>
+                        <span class="btn-text">Continue</span>
                         <i class="fa-solid fa-arrow-right-to-bracket"></i>
                         <div class="spinner" style="display: none;"></div>
                     </button>
                 </form>
 
                 <div class="auth-footer">
-                    Don't have an account? <a href="{{ url_for('register') }}">Create one for free</a>
+                    New to FuelWise? <a href="{{ url_for('register') }}">Create an account</a>
+                </div>
+
+                <!-- Secure Branding Trust Badges -->
+                <div class="auth-trust-banner">
+                    <span><i class="fa-solid fa-shield-halved"></i> Secure Auth</span>
+                    <span><i class="fa-solid fa-eye-slash"></i> Privacy Protected</span>
+                    <span><i class="fa-solid fa-lock"></i> Encrypted</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Container -->
+    <!-- Alert Toast Container -->
     <div class="toast-container" id="toastContainer">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
         <div class="toast {{ category }} show">
-            {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
-            {% elif category == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
-            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+            {% if category == 'success' %}
+            <i class="fa-solid fa-circle-check"></i>
+            {% elif category == 'error' %}
+            <i class="fa-solid fa-circle-xmark"></i>
+            {% else %}
+            <i class="fa-solid fa-circle-info"></i>
+            {% endif %}
             <span>{{ message }}</span>
         </div>
         {% endfor %}
@@ -115,11 +230,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('authForm');
-            const emailInput = document.getElementById('email');
             const passInput = document.getElementById('password');
             const submitBtn = document.getElementById('submitBtn');
             const toggleBtn = document.getElementById('togglePassword');
             const eyeIcon = document.getElementById('eyeIcon');
+            const themeToggle = document.getElementById('themeToggle');
             const toasts = document.querySelectorAll('.toast');
 
             // Hide toasts after delay
@@ -130,25 +245,37 @@
                 }, 4000);
             });
 
-            // Password Toggle
+            // Password Toggle Visibility
             toggleBtn.addEventListener('click', () => {
-                const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passInput.setAttribute('type', type);
-                eyeIcon.classList.toggle('fa-eye');
-                eyeIcon.classList.toggle('fa-eye-slash');
+                const isPassword = passInput.getAttribute('type') === 'password';
+                passInput.setAttribute('type', isPassword ? 'text' : 'password');
+                eyeIcon.classList.toggle('fa-eye', !isPassword);
+                eyeIcon.classList.toggle('fa-eye-slash', isPassword);
             });
 
-            // Form Submit Loading State
+            // Form Submit Loading spinner toggle
             form.addEventListener('submit', (e) => {
                 const btnText = submitBtn.querySelector('.btn-text');
                 const btnIcon = submitBtn.querySelector('i');
                 const spinner = submitBtn.querySelector('.spinner');
 
-                btnText.style.display = 'none';
-                btnIcon.style.display = 'none';
-                spinner.style.display = 'block';
-                submitBtn.disabled = true;
+                if (btnText && btnIcon && spinner) {
+                    btnText.style.display = 'none';
+                    btnIcon.style.display = 'none';
+                    spinner.style.display = 'block';
+                    setTimeout(() => { submitBtn.disabled = true; }, 10);
+                }
             });
+
+            // Theme Toggle click handler
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const isDark = document.documentElement.classList.toggle('dark');
+                    const newTheme = isDark ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('fw-theme', newTheme);
+                });
+            }
         });
     </script>
 </body>

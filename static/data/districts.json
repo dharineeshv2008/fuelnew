@@ -1,0 +1,346 @@
+{
+  "districts": [
+    {
+      "id": "chennai",
+      "name": "Chennai",
+      "hq": "Chennai",
+      "lat": 13.0827,
+      "lng": 80.2707,
+      "major_cities": ["Ambattur", "Tambaram", "Porur", "Avadi"],
+      "code": "CHN"
+    },
+    {
+      "id": "tiruvallur",
+      "name": "Tiruvallur",
+      "hq": "Tiruvallur",
+      "lat": 13.1435,
+      "lng": 79.9098,
+      "major_cities": ["Ponneri", "Gummidipoondi", "Tiruttani", "Arambakkam"],
+      "code": "TVR"
+    },
+    {
+      "id": "chengalpattu",
+      "name": "Chengalpattu",
+      "hq": "Chengalpattu",
+      "lat": 12.6921,
+      "lng": 79.9757,
+      "major_cities": ["Mahabalipuram", "Guduvanchery", "Urapakkam"],
+      "code": "CGP"
+    },
+    {
+      "id": "kanchipuram",
+      "name": "Kanchipuram",
+      "hq": "Kanchipuram",
+      "lat": 12.8342,
+      "lng": 79.7036,
+      "major_cities": ["Sriperumbudur", "Uthiramerur", "Walajabad"],
+      "code": "KCP"
+    },
+    {
+      "id": "vellore",
+      "name": "Vellore",
+      "hq": "Vellore",
+      "lat": 12.9165,
+      "lng": 79.1325,
+      "major_cities": ["Katpadi", "Arani", "Gudiyatham", "Ambur"],
+      "code": "VLR"
+    },
+    {
+      "id": "ranipet",
+      "name": "Ranipet",
+      "hq": "Ranipet",
+      "lat": 12.9228,
+      "lng": 79.3322,
+      "major_cities": ["Walajah", "Arcot", "Sholingur"],
+      "code": "RNP"
+    },
+    {
+      "id": "tirupattur",
+      "name": "Tirupattur",
+      "hq": "Tirupattur",
+      "lat": 12.4962,
+      "lng": 78.5730,
+      "major_cities": ["Vaniyambadi", "Jolarpettai"],
+      "code": "TPT"
+    },
+    {
+      "id": "krishnagiri",
+      "name": "Krishnagiri",
+      "hq": "Krishnagiri",
+      "lat": 12.5266,
+      "lng": 78.2148,
+      "major_cities": ["Hosur", "Denkanikottai", "Bargur"],
+      "code": "KRI"
+    },
+    {
+      "id": "dharmapuri",
+      "name": "Dharmapuri",
+      "hq": "Dharmapuri",
+      "lat": 12.1272,
+      "lng": 78.1582,
+      "major_cities": ["Pennagaram", "Palacode", "Harur"],
+      "code": "DHP"
+    },
+    {
+      "id": "salem",
+      "name": "Salem",
+      "hq": "Salem",
+      "lat": 11.6643,
+      "lng": 78.1460,
+      "major_cities": ["Attur", "Omalur", "Mettur", "Yercaud", "Sankari"],
+      "code": "SLM"
+    },
+    {
+      "id": "namakkal",
+      "name": "Namakkal",
+      "hq": "Namakkal",
+      "lat": 11.2189,
+      "lng": 78.1674,
+      "major_cities": ["Rasipuram", "Tiruchengode", "Kumarapalayam", "Paramathi"],
+      "code": "NMK"
+    },
+    {
+      "id": "erode",
+      "name": "Erode",
+      "hq": "Erode",
+      "lat": 11.3410,
+      "lng": 77.7172,
+      "major_cities": ["Gobichettipalayam", "Bhavani", "Sathyamangalam", "Perundurai"],
+      "code": "ERD"
+    },
+    {
+      "id": "tiruppur",
+      "name": "Tiruppur",
+      "hq": "Tiruppur",
+      "lat": 11.1085,
+      "lng": 77.3411,
+      "major_cities": ["Dharapuram", "Palladam", "Udumalpet", "Kangeyam"],
+      "code": "TRP"
+    },
+    {
+      "id": "coimbatore",
+      "name": "Coimbatore",
+      "hq": "Coimbatore",
+      "lat": 11.0168,
+      "lng": 76.9558,
+      "major_cities": ["Pollachi", "Sulur", "Mettupalayam", "Annur"],
+      "code": "CBE"
+    },
+    {
+      "id": "nilgiris",
+      "name": "Nilgiris",
+      "hq": "Ooty",
+      "lat": 11.4102,
+      "lng": 76.6950,
+      "major_cities": ["Coonoor", "Gudalur", "Kotagiri", "Udhagamandalam"],
+      "code": "NLG"
+    },
+    {
+      "id": "dindigul",
+      "name": "Dindigul",
+      "hq": "Dindigul",
+      "lat": 10.3624,
+      "lng": 77.9695,
+      "major_cities": ["Palani", "Vedasandur", "Oddanchatram", "Natham"],
+      "code": "DGL"
+    },
+    {
+      "id": "theni",
+      "name": "Theni",
+      "hq": "Theni",
+      "lat": 10.0104,
+      "lng": 77.4770,
+      "major_cities": ["Periyakulam", "Bodinayakkanur", "Uthamapalayam", "Andipatti"],
+      "code": "THN"
+    },
+    {
+      "id": "madurai",
+      "name": "Madurai",
+      "hq": "Madurai",
+      "lat": 9.9252,
+      "lng": 78.1198,
+      "major_cities": ["Melur", "Usilampatti", "Tirumangalam", "Vadipatti"],
+      "code": "MDU"
+    },
+    {
+      "id": "sivaganga",
+      "name": "Sivaganga",
+      "hq": "Sivaganga",
+      "lat": 9.8476,
+      "lng": 78.4805,
+      "major_cities": ["Karaikudi", "Devakottai", "Manamadurai"],
+      "code": "SVG"
+    },
+    {
+      "id": "ramanathapuram",
+      "name": "Ramanathapuram",
+      "hq": "Ramanathapuram",
+      "lat": 9.3739,
+      "lng": 78.8308,
+      "major_cities": ["Paramakudi", "Rameswaram", "Mandapam", "Mudukulathur"],
+      "code": "RMN"
+    },
+    {
+      "id": "virudhunagar",
+      "name": "Virudhunagar",
+      "hq": "Virudhunagar",
+      "lat": 9.5851,
+      "lng": 77.9624,
+      "major_cities": ["Srivilliputhur", "Aruppukkottai", "Sivakasi", "Sattur"],
+      "code": "VDN"
+    },
+    {
+      "id": "thoothukudi",
+      "name": "Thoothukudi",
+      "hq": "Thoothukudi",
+      "lat": 8.7642,
+      "lng": 78.1348,
+      "major_cities": ["Tiruchendur", "Kovilpatti", "Kayalpatnam"],
+      "code": "TUT"
+    },
+    {
+      "id": "tirunelveli",
+      "name": "Tirunelveli",
+      "hq": "Tirunelveli",
+      "lat": 8.7139,
+      "lng": 77.7567,
+      "major_cities": ["Palayamkottai", "Ambasamudram", "Sankarankovil", "Nanguneri"],
+      "code": "TNV"
+    },
+    {
+      "id": "tenkasi",
+      "name": "Tenkasi",
+      "hq": "Tenkasi",
+      "lat": 8.9593,
+      "lng": 77.3152,
+      "major_cities": ["Shenkottai", "Kadayanallur", "Alangulam", "Courtallam"],
+      "code": "TKS"
+    },
+    {
+      "id": "kanyakumari",
+      "name": "Kanyakumari",
+      "hq": "Nagercoil",
+      "lat": 8.1833,
+      "lng": 77.4119,
+      "major_cities": ["Padmanabhapuram", "Colachel", "Marthandam", "Thuckalay"],
+      "code": "KNY"
+    },
+    {
+      "id": "tiruchirappalli",
+      "name": "Tiruchirappalli",
+      "hq": "Trichy",
+      "lat": 10.7905,
+      "lng": 78.7047,
+      "major_cities": ["Lalgudi", "Musiri", "Manapparai", "Srirangam"],
+      "code": "TRY"
+    },
+    {
+      "id": "karur",
+      "name": "Karur",
+      "hq": "Karur",
+      "lat": 10.9601,
+      "lng": 78.0766,
+      "major_cities": ["Kulithalai", "Krishnarayapuram", "Aravakurichi"],
+      "code": "KRR"
+    },
+    {
+      "id": "perambalur",
+      "name": "Perambalur",
+      "hq": "Perambalur",
+      "lat": 11.2329,
+      "lng": 78.8814,
+      "major_cities": ["Ariyalur", "Veppanthattai", "Kunnam"],
+      "code": "PBR"
+    },
+    {
+      "id": "ariyalur",
+      "name": "Ariyalur",
+      "hq": "Ariyalur",
+      "lat": 11.1399,
+      "lng": 79.0762,
+      "major_cities": ["Udayarpalayam", "Sendurai", "Jayankondam"],
+      "code": "ARL"
+    },
+    {
+      "id": "cuddalore",
+      "name": "Cuddalore",
+      "hq": "Cuddalore",
+      "lat": 11.7447,
+      "lng": 79.7680,
+      "major_cities": ["Panruti", "Chidambaram", "Kattumannarkoil", "Virudhachalam"],
+      "code": "CDL"
+    },
+    {
+      "id": "villupuram",
+      "name": "Villupuram",
+      "hq": "Villupuram",
+      "lat": 11.9401,
+      "lng": 79.4930,
+      "major_cities": ["Tindivanam", "Gingee", "Ulundurpettai", "Kallakurichi"],
+      "code": "VPM"
+    },
+    {
+      "id": "kallakurichi",
+      "name": "Kallakurichi",
+      "hq": "Kallakurichi",
+      "lat": 11.7363,
+      "lng": 78.9598,
+      "major_cities": ["Sankarapuram", "Ulundurpettai", "Tirunavalur"],
+      "code": "KLK"
+    },
+    {
+      "id": "nagapattinam",
+      "name": "Nagapattinam",
+      "hq": "Nagapattinam",
+      "lat": 10.7672,
+      "lng": 79.8449,
+      "major_cities": ["Vedaranyam", "Sirkazhi", "Kilvelur"],
+      "code": "NGP"
+    },
+    {
+      "id": "mayiladuthurai",
+      "name": "Mayiladuthurai",
+      "hq": "Mayiladuthurai",
+      "lat": 11.1035,
+      "lng": 79.6508,
+      "major_cities": ["Sirkali", "Kumbakonam area", "Sembanarkoil"],
+      "code": "MYL"
+    },
+    {
+      "id": "tiruvarur",
+      "name": "Tiruvarur",
+      "hq": "Tiruvarur",
+      "lat": 10.7726,
+      "lng": 79.6380,
+      "major_cities": ["Papanasam", "Kudavasal", "Mannargudi"],
+      "code": "TVU"
+    },
+    {
+      "id": "thanjavur",
+      "name": "Thanjavur",
+      "hq": "Thanjavur",
+      "lat": 10.7870,
+      "lng": 79.1378,
+      "major_cities": ["Kumbakonam", "Papanasam", "Pattukkottai", "Orathanadu"],
+      "code": "TJR"
+    },
+    {
+      "id": "pudukkottai",
+      "name": "Pudukkottai",
+      "hq": "Pudukkottai",
+      "lat": 10.3797,
+      "lng": 78.8207,
+      "major_cities": ["Aranthangi", "Karambakudi", "Thirumayam"],
+      "code": "PDK"
+    },
+    {
+      "id": "tiruvannamalai",
+      "name": "Tiruvannamalai",
+      "hq": "Tiruvannamalai",
+      "lat": 12.2314,
+      "lng": 79.0670,
+      "major_cities": ["Arani", "Polur", "Cheyyar", "Vandavasi"],
+      "code": "TVN"
+    }
+  ]
+}

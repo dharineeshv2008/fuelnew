@@ -1,0 +1,653 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    /* Custom Leaflet Map styling */
+    #plannerMap {
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+    }
+    
+    .leaflet-popup-content-wrapper {
+        background: rgba(16, 26, 20, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(24, 160, 106, 0.3) !important;
+        color: #fff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+        font-family: inherit;
+    }
+    
+    .leaflet-popup-content {
+        margin: 12px 16px !important;
+        line-height: 1.4;
+    }
+    
+    .leaflet-popup-tip {
+        background: rgba(16, 26, 20, 0.95) !important;
+        border-left: 1px solid rgba(24, 160, 106, 0.3) !important;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.3) !important;
+    }
+    
+    .leaflet-bar {
+        border: 1px solid rgba(24, 160, 106, 0.25) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        background: rgba(16, 26, 20, 0.9) !important;
+        border-radius: 8px !important;
+        overflow: hidden;
+    }
+    
+    .leaflet-bar a {
+        background: rgba(16, 26, 20, 0.9) !important;
+        color: #2ECC71 !important;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.15) !important;
+        transition: background 0.2s, color 0.2s;
+    }
+    
+    .leaflet-bar a:hover {
+        background: #18A06A !important;
+        color: #fff !important;
+    }
+
+    /* Floating Map Layers Controller */
+    .map-floating-control {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 1000;
+        background: rgba(10, 18, 14, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        padding: 10px 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        max-height: 250px;
+        width: 165px;
+        overflow-y: auto;
+    }
+    
+    .map-floating-control h4 {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #2ECC71;
+        margin-top: 0;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.2);
+        padding-bottom: 4px;
+    }
+    
+    .map-floating-control label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #c8d6e5;
+        margin-bottom: 6px;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .map-floating-control label:last-child {
+        margin-bottom: 0;
+    }
+    
+    .map-floating-control label input {
+        accent-color: #2ECC71;
+        cursor: pointer;
+        width: 12px;
+        height: 12px;
+    }
+
+    /* Map Pulse Animations */
+    .pulse-node {
+        animation: mapNodePulse 2.5s infinite alternate ease-in-out;
+    }
+    
+    @keyframes mapNodePulse {
+        0% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 1px rgba(46,204,113,0.3)); }
+        100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 6px rgba(46,204,113,0.8)); }
+    }
+
+    .border-label {
+        background: transparent !important;
+        border: none !important;
+        color: rgba(255,255,255,0.4) !important;
+        font-size: 10px !important;
+        font-weight: bold !important;
+        letter-spacing: 0.15em !important;
+        box-shadow: none !important;
+        text-shadow: 0 0 4px #000;
+    }
+    
+    /* GIS Loading Skeleton */
+    #mapSkeleton {
+        transition: opacity 0.5s ease-in-out;
+    }
+    
+    /* Map search floating control */
+    .map-search-control {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1000;
+        background: rgba(10, 18, 14, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        padding: 6px 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 260px;
+    }
+    
+    .map-search-control input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        width: 100%;
+    }
+    
+    .map-search-control input::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .map-search-control i {
+        color: #2ECC71;
+        font-size: 12px;
+    }
+
+    /* Autocomplete dropdown overlay */
+    #mapSearchResults {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        margin-top: 6px;
+        background: rgba(10, 18, 14, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        max-height: 180px;
+        overflow-y: auto;
+        z-index: 1100;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    
+    .search-result-item {
+        padding: 8px 12px;
+        font-size: 11px;
+        color: #c8d6e5;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(24, 160, 106, 0.1);
+        transition: background 0.2s, color 0.2s;
+    }
+    
+    .search-result-item:hover {
+        background: rgba(24, 160, 106, 0.15);
+        color: #fff;
+    }
+    
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    
+    .search-result-type {
+        font-size: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #2ECC71;
+        background: rgba(46, 204, 113, 0.1);
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    /* Map actions overlay control */
+    .map-actions-control {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        z-index: 1000;
+        background: rgba(10, 18, 14, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        padding: 8px 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .map-actions-control button {
+        background: rgba(24, 160, 106, 0.1);
+        border: 1px solid rgba(24, 160, 106, 0.3);
+        border-radius: 6px;
+        color: #2ECC71;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 5px 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    
+    .map-actions-control button:hover {
+        background: #18A06A;
+        color: #fff;
+        border-color: #18A06A;
+    }
+
+    /* Route preview card overlay */
+    .map-route-preview {
+        position: absolute;
+        top: 55px;
+        left: 12px;
+        z-index: 1000;
+        background: rgba(10, 18, 14, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(24, 160, 106, 0.25);
+        border-radius: 12px;
+        padding: 10px 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        width: 230px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-up max-w-6xl mx-auto" id="page-planner">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Smart Route Planner</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 font-medium">Plan multi-stop trips across Tamil Nadu with intelligent route optimization.</p>
+        </div>
+        <div class="px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold uppercase tracking-widest">
+            Route Intelligence
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2 mb-8">
+        <!-- Left: Route Builder Column -->
+        <div class="lg:col-span-4 order-2 lg:order-1 space-y-6">
+
+            <!-- AI Assistant -->
+            <details class="group mobile-collapsible-card fw-card border-primary/20" open>
+                <summary class="mobile-collapsible-summary">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                            <i class="fa-solid fa-brain text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white">AI Route Assistant</h3>
+                            <p class="text-[10px] text-gray-400 font-medium">Type your trip in natural language</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
+                </summary>
+                <div class="mobile-collapsible-content pt-4">
+                    <form method="POST" action="{{ url_for('smart_planner') }}" class="space-y-3">
+                        <input type="hidden" name="action" value="ai_parse">
+                        <textarea name="ai_text" rows="2" placeholder='Example: "Visit Salem, Erode and Coimbatore from Namakkal"' class="fw-input" style="height:auto;padding-top:12px;padding-bottom:12px;">{{ form.get('ai_text', '') }}</textarea>
+                        {% if ai_message %}
+                        <div class="px-3 py-2 bg-primary/10 border border-primary/20 rounded-xl text-xs font-semibold text-primary">
+                            <i class="fa-solid fa-circle-check mr-1"></i> {{ ai_message }}
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="fw-btn fw-btn-outline w-full text-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Parse Route
+                        </button>
+                    </form>
+                </div>
+            </details>
+
+            <!-- Manual Route Builder -->
+            <details class="group mobile-collapsible-card fw-card" open>
+                <summary class="mobile-collapsible-summary">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Route Builder</h3>
+                    </div>
+                    <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
+                </summary>
+                <div class="mobile-collapsible-content pt-4">
+                    <form method="POST" action="{{ url_for('smart_planner') }}" id="plannerForm" class="space-y-4">
+                        <input type="hidden" name="action" value="calculate">
+
+                        <!-- Origin -->
+                        <div>
+                            <label class="fw-label">
+                                <i class="fa-solid fa-flag text-primary mr-1"></i> Start Location
+                            </label>
+                            <select name="origin" class="fw-input" required>
+                                <option value="">-- Select Start --</option>
+                                {% for city in cities %}
+                                <option value="{{ city }}" {% if form.get('origin') == city %}selected{% endif %}>{{ city }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Destination -->
+                        <div>
+                            <label class="fw-label">
+                                <i class="fa-solid fa-map-pin text-danger mr-1"></i> Destination
+                            </label>
+                            <select name="destination" class="fw-input" required>
+                                <option value="">-- Select Destination --</option>
+                                {% for city in cities %}
+                                <option value="{{ city }}" {% if form.get('destination') == city %}selected{% endif %}>{{ city }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Progressive Disclosure: Advanced settings collapsed by default -->
+                        <details class="group bg-primary/5 border border-primary/10 rounded-xl p-3">
+                            <summary class="flex justify-between items-center font-bold text-xs cursor-pointer select-none text-primary">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> Advanced Settings</span>
+                                <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180 text-[10px]"></i>
+                            </summary>
+                            <div class="mt-4 space-y-4">
+                                <!-- Dynamic Stops -->
+                                <div id="stopsContainer" class="space-y-3">
+                                    {% if form.get('stops') %}
+                                    {% for stop in form.get('stops', []) %}
+                                    <div class="stop-row flex gap-2 items-start">
+                                        <div class="flex-1">
+                                            <label class="fw-label"><i class="fa-solid fa-location-dot text-secondary mr-1"></i> Stop</label>
+                                            <select name="stops[]" class="fw-input">
+                                                <option value="">-- Optional Stop --</option>
+                                                {% for city in cities %}
+                                                <option value="{{ city }}" {% if stop == city %}selected{% endif %}>{{ city }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="button" onclick="removeStop(this)" class="mt-7 fw-btn fw-btn-outline px-3" style="height:48px;">
+                                            <i class="fa-solid fa-minus text-danger"></i>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <button type="button" onclick="addStop()" class="fw-btn fw-btn-outline w-full text-xs">
+                                    <i class="fa-solid fa-plus mr-1 text-primary"></i> Add Stop
+                                </button>
+
+                                <!-- Vehicle Params -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="fw-label">Vehicle (Optional)</label>
+                                        <select name="vehicle_id" class="fw-input" onchange="autoFillVehicle(this)">
+                                            <option value="">Manual Entry</option>
+                                            {% for v in vehicles %}
+                                            <option value="{{ v.id }}" {% if form.get('vehicle_id') == v.id %}selected{% endif %}>
+                                                {{ v.vehicle_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="fw-label">Fuel Type</label>
+                                        <select name="fuel_type" id="fuelType" class="fw-input">
+                                            <option value="Petrol" {% if form.get('fuel_type','Petrol')=='Petrol' %}selected{% endif %}>Petrol</option>
+                                            <option value="Diesel" {% if form.get('fuel_type')=='Diesel' %}selected{% endif %}>Diesel</option>
+                                            <option value="EV" {% if form.get('fuel_type')=='EV' %}selected{% endif %}>Electric</option>
+                                            <option value="CNG" {% if form.get('fuel_type')=='CNG' %}selected{% endif %}>CNG</option>
+                                            <option value="Hybrid" {% if form.get('fuel_type')=='Hybrid' %}selected{% endif %}>Hybrid</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="fw-label" id="mileageLabel">Mileage (km/L)</label>
+                                        <input type="number" name="mileage" id="mileageInput" value="{{ form.get('mileage', 15) }}" step="0.1" class="fw-input" required>
+                                    </div>
+                                    <div>
+                                        <label class="fw-label" id="priceLabel">Fuel Price (/L)</label>
+                                        <input type="number" name="fuel_price" id="fuelPriceInput" value="{{ form.get('fuel_price', session.get('price_petrol', 102)) }}" step="0.01" class="fw-input" required>
+                                    </div>
+                                </div>
+
+                                <!-- Optimize toggle -->
+                                <label class="flex items-center gap-3 py-3 px-4 bg-primary/5 border border-primary/15 rounded-xl cursor-pointer">
+                                    <input type="checkbox" name="optimize" id="optimizeToggle" class="accent-[#0F7B53] w-4 h-4" {% if form.get('optimize') %}checked{% endif %}>
+                                    <div>
+                                        <span class="text-xs font-bold">Optimize Route Order</span>
+                                        <p class="text-[10px] text-gray-400">Automatically reorder stops for shortest path</p>
+                                    </div>
+                                    <i class="fa-solid fa-wand-magic-sparkles text-primary ml-auto text-xs"></i>
+                                </label>
+                            </div>
+                        </details>
+
+                        <button type="submit" class="fw-btn fw-btn-primary w-full text-base" data-no-disable="true">
+                            <i class="fa-solid fa-route mr-2"></i> Calculate Route
+                        </button>
+                    </form>
+                </div>
+            </details>
+        </div>
+
+        <!-- Right: GIS Map Column -->
+        <div class="lg:col-span-8 order-1 lg:order-2">
+            <!-- Leaflet GIS Map Card -->
+            <div class="fw-card p-0 relative overflow-hidden h-[50vh] sm:h-[55vh] lg:h-[65vh] min-h-[350px]">
+                <!-- GIS Loading Skeleton Overlay -->
+                <div id="mapSkeleton" class="absolute inset-0 z-[2000] bg-[#0d121d] flex flex-col items-center justify-center gap-4 transition-opacity duration-500">
+                    <div class="relative w-12 h-12">
+                        <div class="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                    </div>
+                    <div class="text-[9px] font-bold text-primary tracking-widest uppercase animate-pulse">Initializing GIS Engine...</div>
+                </div>
+                
+                <div id="plannerMap"></div>
+                
+                <!-- Floating Map Search Box -->
+                <div class="map-search-control">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="mapSearchInput" placeholder="Search Districts, Constituencies, Places..." oninput="handleMapSearch(this.value)" autocomplete="off">
+                    <div id="mapSearchResults" class="hidden"></div>
+                </div>
+
+                <!-- Floating Route Preview Card -->
+                <div id="mapRoutePreview" class="map-route-preview hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-primary uppercase tracking-wider">Route Preview</span>
+                        <button type="button" onclick="toggleRoutePreview()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="space-y-1.5 text-xs text-gray-300">
+                        <div class="flex justify-between"><span>Distance:</span><span id="previewDistance" class="font-bold text-white">0 km</span></div>
+                        <div class="flex justify-between"><span>Duration:</span><span id="previewDuration" class="font-bold text-white">0 hrs</span></div>
+                        <div class="flex justify-between"><span>Fuel needed:</span><span id="previewFuel" class="font-bold text-secondary">0 L</span></div>
+                        <div class="flex justify-between"><span>Total Cost:</span><span id="previewCost" class="font-bold text-warning">₹0</span></div>
+                    </div>
+                </div>
+
+                <!-- Floating Map Action Circle Buttons -->
+                <div class="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
+                    <button type="button" onclick="locateUser()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-[#2ECC71] border border-[#2ECC71]/25 flex items-center justify-center shadow-lg" title="Locate Me">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </button>
+                    <button type="button" onclick="resetMapZoom()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-primary border border-primary/25 flex items-center justify-center shadow-lg" title="Reset View">
+                        <i class="fa-solid fa-arrows-to-eye"></i>
+                    </button>
+                    <button type="button" onclick="clearMapPins()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-red-500 border border-red-500/25 flex items-center justify-center shadow-lg" title="Clear Pins">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <button type="button" onclick="calculateAndRoute()" class="map-circle-btn w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center shadow-lg" title="Calculate Route">
+                        <i class="fa-solid fa-route"></i>
+                    </button>
+                </div>
+                
+                <!-- Floating Layer Toggle Button -->
+                <button type="button" id="gisLayerToggleBtn" class="gis-layer-toggle-btn">
+                    <i class="fa-solid fa-layer-group"></i>
+                </button>
+                
+                <!-- Floating GIS Layer Controller -->
+                <div class="map-floating-control">
+                    <h4>GIS Layers</h4>
+                    <label><input type="checkbox" id="layerHighways" checked onchange="toggleMapLayer('highways')"> Road Networks</label>
+                    <label><input type="checkbox" id="layerDistricts" checked onchange="toggleMapLayer('districts')"> District HQs</label>
+                    <label><input type="checkbox" id="layerConstituencies" checked onchange="toggleMapLayer('constituencies')"> Constituencies</label>
+                    <label><input type="checkbox" id="layerGovernment" checked onchange="toggleMapLayer('government')"> Collectorates</label>
+                    <label><input type="checkbox" id="layerTransport" checked onchange="toggleMapLayer('transport')"> Transport Hubs</label>
+                    <label><input type="checkbox" id="layerHospitals" checked onchange="toggleMapLayer('hospitals')"> Hospitals</label>
+                    <label><input type="checkbox" id="layerTemples" checked onchange="toggleMapLayer('temples')"> Temples/Tourism</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Below: Results Container (Metrics & Timeline) -->
+    <div id="routeResultsContainer" class="{% if not result %}hidden{% endif %} space-y-8 px-2">
+        <!-- Collapsible Metrics Card -->
+        <details class="group mobile-collapsible-card fw-card" open>
+            <summary class="mobile-collapsible-summary">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-6 bg-secondary rounded-full"></div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Route Metrics</h3>
+                </div>
+                <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
+            </summary>
+            <div class="mobile-collapsible-content pt-6">
+                <!-- Summary Cards Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="fw-card text-center metrics-card">
+                        <p class="text-caption mb-1">Distance</p>
+                        <p class="text-2xl font-black text-primary" id="valDistance">{% if result %}{{ result.total_km }}{% else %}0{% endif %}</p>
+                        <p class="text-[10px] text-gray-400">kilometres</p>
+                    </div>
+                    <div class="fw-card text-center metrics-card">
+                        <p class="text-caption mb-1">Fuel Needed</p>
+                        <p class="text-2xl font-black text-secondary" id="valFuel">{% if result %}{{ result.fuel_needed }}{% else %}0{% endif %}</p>
+                        <p class="text-[10px] text-gray-400" id="valFuelType">{% if result %}{{ result.fuel_type }}{% else %}Petrol{% endif %}</p>
+                    </div>
+                    <div class="fw-card text-center metrics-card">
+                        <p class="text-caption mb-1">Total Cost</p>
+                        <p class="text-2xl font-black text-warning" id="valCost">{% if result %}{{ format_currency(result.total_cost) }}{% else %}₹0{% endif %}</p>
+                        <p class="text-[10px] text-gray-400">estimated</p>
+                    </div>
+                    <div class="fw-card text-center metrics-card">
+                        <p class="text-caption mb-1">Travel Time</p>
+                        <p class="text-2xl font-black text-gray-700 dark:text-gray-300" id="valTime">{% if result %}{{ result.travel_hours }}{% else %}0{% endif %}</p>
+                        <p class="text-[10px] text-gray-400">hours est.</p>
+                    </div>
+                    <div class="fw-card text-center metrics-card">
+                        <p class="text-caption mb-1">CO₂ Emission</p>
+                        <p class="text-2xl font-black text-danger" id="valCO2">{% if result %}{{ result.co2 }}{% else %}0{% endif %}</p>
+                        <p class="text-[10px] text-gray-400">kg CO₂</p>
+                    </div>
+                    <div class="fw-card text-center metrics-card">
+                        <p class="text-caption mb-1">Total Stops</p>
+                        <p class="text-2xl font-black text-gray-700 dark:text-gray-300" id="valStops">{% if result %}{{ result.stop_count }}{% else %}0{% endif %}</p>
+                        <p class="text-[10px] text-gray-400">waypoints</p>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <!-- Collapsible Route Timeline Card -->
+        <details class="group mobile-collapsible-card fw-card" open>
+            <summary class="mobile-collapsible-summary">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Route Breakdown</h3>
+                    <span id="optimizedBadge" class="text-xs font-bold bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-lg {% if not (result and result.optimized) %}hidden{% endif %}">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Optimized
+                    </span>
+                </div>
+                <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
+            </summary>
+            <div class="mobile-collapsible-content pt-6">
+                <div class="space-y-3" id="routeTimelineList">
+                    {% if result %}
+                    {% for seg in result.segments %}
+                    <!-- Collapsible details accordion per segment -->
+                    <div class="border border-gray-100 dark:border-white/5 rounded-xl overflow-hidden bg-gray-50 dark:bg-white/5 animate-fade-up">
+                        <details class="group">
+                            <summary class="flex items-center justify-between py-3 px-4 font-semibold text-sm cursor-pointer select-none">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-6 h-6 rounded-full {% if loop.first %}bg-primary{% else %}bg-secondary/80{% endif %} flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                                        {{ loop.index }}
+                                    </div>
+                                    <span class="truncate max-w-[120px] sm:max-w-[200px]">{{ seg.from }}</span>
+                                    <i class="fa-solid fa-arrow-right text-primary text-xs flex-shrink-0"></i>
+                                    <span class="truncate max-w-[120px] sm:max-w-[200px]">{{ seg.to }}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-primary">{{ seg.distance }} km</span>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform group-open:rotate-180"></i>
+                                </div>
+                            </summary>
+                            <div class="px-4 pb-3 pt-1 border-t border-gray-100 dark:border-white/5 text-xs text-gray-500 dark:text-gray-400 space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Segment Distance:</span>
+                                    <span class="font-bold text-gray-800 dark:text-gray-200">{{ seg.distance }} km</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Est. Drive Time:</span>
+                                    <span class="font-bold text-gray-800 dark:text-gray-200">{{ (seg.distance / 50.0)|round(1) }} hrs</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Est. Fuel Consumed:</span>
+                                    <span class="font-bold text-gray-800 dark:text-gray-200">{{ (seg.distance / 15.0)|round(1) }} L</span>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                    {% endfor %}
+                    <!-- Final destination -->
+                    <div class="flex items-center gap-3 py-3 px-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 animate-fade-up">
+                        <div class="w-6 h-6 rounded-full bg-danger flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                            <i class="fa-solid fa-map-pin"></i>
+                        </div>
+                        <span class="font-semibold text-sm truncate">{{ result.stops[-1] }}</span>
+                        <span class="ml-auto text-xs text-success font-bold">Destination</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </details>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.cities = {{ cities | tojson }};
+    window.vehicleData = {{ vehicles | tojson }};
+    window.routeStops = {{ result.stops | tojson if result else '[]' }};
+    window.sessionPetrolPrice = {{ session.get('price_petrol', 102) }};
+    window.sessionDieselPrice = {{ session.get('price_diesel', 89) }};
+    window.sessionEvPrice = {{ session.get('price_ev', 8) }};
+    window.sessionCngPrice = {{ session.get('price_cng', 75) }};
+</script>
+<script src="{{ url_for('static', filename='js/route-cache.js') }}"></script>
+<script src="{{ url_for('static', filename='js/routing-provider.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map-service.js') }}"></script>
+<script src="{{ url_for('static', filename='js/planner-map.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        window.initPlannerMap();
+    });
+</script>
+{% endblock content %}

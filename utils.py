@@ -83,3 +83,99 @@ def get_random_tip():
 
 def format_currency(amount, symbol):
     return f"{symbol}{float(amount or 0):,.2f}"
+
+
+# --- DATA & ROUTE UTILITIES ---
+
+import json
+
+_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'data')
+
+def load_data(filename):
+    """Load a JSON data file from static/data/"""
+    try:
+        filepath = os.path.join(_DATA_DIR, filename)
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def find_distance(origin, dest, matrix):
+    """Find road distance between two cities from lookup matrix"""
+    if not origin or not dest or origin == dest:
+        return 0
+    d = matrix.get(origin, {}).get(dest)
+    if d is None:
+        d = matrix.get(dest, {}).get(origin)
+    return d if d is not None else None
+
+def optimize_route(stops, matrix):
+    """Nearest neighbor TSP approximation for route optimization"""
+    if len(stops) <= 2:
+        return stops
+    start = stops[0]
+    end = stops[-1]
+    middle = list(stops[1:-1])
+    if not middle:
+        return stops
+    route = [start]
+    unvisited = middle[:]
+    current = start
+    while unvisited:
+        def dist_to(x):
+            d = matrix.get(current, {}).get(x) or matrix.get(x, {}).get(current)
+            return d if d is not None else 99999
+        best = min(unvisited, key=dist_to)
+        route.append(best)
+        unvisited.remove(best)
+        current = best
+    route.append(end)
+    return route
+
+def calculate_route_plan(stops, matrix, mileage, fuel_price, fuel_type='Petrol'):
+    """Calculate full route plan statistics from list of stops"""
+    if len(stops) < 2:
+        return None
+    mileage = max(float(mileage), 1.0)
+    fuel_price = max(float(fuel_price), 1.0)
+    segments = []
+    total_km = 0
+    for i in range(len(stops) - 1):
+        dist = find_distance(stops[i], stops[i+1], matrix)
+        if dist is None:
+            dist = 80  # fallback average
+        segments.append({'from': stops[i], 'to': stops[i+1], 'distance': dist})
+        total_km += dist
+    fuel_needed = total_km / mileage
+    total_cost = fuel_needed * fuel_price
+    travel_hours = total_km / 60.0
+    co2_factors = {'Petrol': 2.31, 'Diesel': 2.68, 'CNG': 2.0, 'EV': 0.0, 'Hybrid': 1.5}
+    co2 = fuel_needed * co2_factors.get(fuel_type, 2.31)
+    return {
+        'stops': stops,
+        'segments': segments,
+        'total_km': round(total_km, 1),
+        'fuel_needed': round(fuel_needed, 2),
+        'total_cost': round(total_cost, 2),
+        'travel_hours': round(travel_hours, 1),
+        'co2': round(co2, 2),
+        'stop_count': len(stops) - 2
+    }
+
+def estimate_days(total_km, daily_km=300):
+    """Estimate travel days for a route"""
+    if total_km <= 0:
+        return 1
+    return max(1, round((total_km / daily_km) + 0.4))
+
+def parse_ai_query(text, cities):
+    """Parse natural language trip request and extract city names"""
+    text_lower = text.lower()
+    found = []
+    sorted_cities = sorted(cities, key=len, reverse=True)
+    for city in sorted_cities:
+        if city.lower() in text_lower and city not in found:
+            found.append(city)
+    if len(found) >= 2:
+        return {'origin': found[0], 'stops': found[1:-1], 'destination': found[-1], 'parsed': True, 'found': found}
+    return {'parsed': False, 'found': found}
