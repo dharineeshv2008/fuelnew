@@ -49,7 +49,7 @@
                         {% set _ = v_options.append((v.id|string, label)) %}
                     {% endfor %}
 
-                    {{ SelectField('vehicle_id', 'Select Fleet Vehicle (Optional)', v_options, selected=form.get('vehicle_id')) }}
+                    {{ SelectField('vehicle_id', 'Select Fleet Vehicle (Optional)', v_options, selected=form.get('vehicle_id') or (active_vehicle_id|string if active_vehicle_id else '')) }}
 
                     {{ InputField('distance', 'Trip Distance (km)', type='number', step='0.1', value=form.get('distance', ''), placeholder='e.g. 150', required=true) }}
                     
@@ -278,6 +278,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         });
+
+        // Auto-populate fields if vehicle is pre-selected (active vehicle or form submission)
+        if (vehicleSelect.value) {
+            vehicleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
     }
 
     // 2. CSV Export

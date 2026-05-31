@@ -33,7 +33,7 @@
                     <!-- Vehicle Selection Card Wrapper -->
                     <div class="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 mb-4">
                         <span class="block text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Vehicle Selection Card</span>
-                        {{ SelectField('vehicle_id', 'Active Vehicle', v_options, selected=form.get('vehicle_id')) }}
+                        {{ SelectField('vehicle_id', 'Active Vehicle', v_options, selected=form.get('vehicle_id') or (active_vehicle_id|string if active_vehicle_id else '')) }}
                     </div>
 
                     {{ InputField('total_dist', 'Total Distance (km)', type='number', step='1', value=form.get('total_dist', ''), placeholder='e.g. 500', required=true) }}
@@ -189,6 +189,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         });
+
+        // Auto-populate fields if vehicle is pre-selected (active vehicle or form submission)
+        if (vehicleSelect.value) {
+            vehicleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
     }
 
     // Client form check

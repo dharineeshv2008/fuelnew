@@ -38,6 +38,9 @@
     --input-bg: rgba(16, 26, 20, 0.8);
     --input-border: #1E2E25;
 
+    /* Solid Surface (for dropdown menus — no bleed-through) */
+    --bg-surface-solid: #0c1510;
+
     /* Transitions */
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     --radius-sm: 8px;
@@ -65,6 +68,9 @@
     /* Form Fields Override */
     --input-bg: #FFFFFF;
     --input-border: #E5E7EB;
+
+    /* Solid Surface Override (light mode dropdown background) */
+    --bg-surface-solid: #ffffff;
 }
 
 /* ═══════════════════════════════════
@@ -451,7 +457,7 @@ h1, h2, h3, h4, h5 {
     left: 0;
     width: 100%;
     margin-top: 6px;
-    background-color: var(--bg-surface);
+    background-color: var(--bg-surface-solid);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
@@ -459,29 +465,38 @@ h1, h2, h3, h4, h5 {
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
-    transition: var(--transition);
-    max-height: 240px;
-    overflow-y: auto;
-    /* Collapsed state defaults */
-    height: 0;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.2s;
+    max-height: 0;
+    overflow: hidden;
     pointer-events: none;
+    overflow-y: auto;
+}
+
+.fw-select-custom.open {
+    z-index: 1010;
 }
 
 .fw-select-custom.open .fw-dropdown-menu {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-    height: auto;
+    max-height: 240px;
     pointer-events: auto;
 }
 
 .fw-dropdown-item {
-    padding: 10px 16px;
+    padding: 12px 16px;
     font-size: 0.9rem;
     color: var(--text-secondary);
     cursor: pointer;
     transition: var(--transition);
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .fw-dropdown-item:hover {

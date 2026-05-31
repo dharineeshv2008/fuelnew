@@ -2,35 +2,24 @@
 
 {% block head %}
 <style>
-    /* Premium SaaS-Style Card Styling */
+    /* Premium SaaS-Style Card Styling — unified with fw-card design system */
     .campaign-card {
-        background-color: rgba(16, 26, 20, 0.65);
+        background-color: var(--bg-surface);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(24, 160, 106, 0.15);
-        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
         padding: 24px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        transition: border-color 0.3s, box-shadow 0.3s;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
         position: relative;
     }
     
     .campaign-card:hover {
-        border-color: rgba(24, 160, 106, 0.3);
-        box-shadow: 0 0 25px rgba(24, 160, 106, 0.15), 0 12px 40px 0 rgba(0, 0, 0, 0.4);
-    }
-    
-    [data-theme="light"] .campaign-card {
-        background-color: rgba(255, 255, 255, 0.8);
-        border-color: rgba(15, 123, 83, 0.12);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-    }
-    
-    [data-theme="light"] .campaign-card:hover {
         border-color: rgba(15, 123, 83, 0.25);
-        box-shadow: 0 0 25px rgba(15, 123, 83, 0.08), 0 12px 32px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--shadow-md);
     }
 
     /* Fixed Scroll Container for Selector Lists (prevent nested page scroll bugs) */
@@ -138,7 +127,6 @@
         background-color: #0d121d !important;
         width: 100%;
         height: 100%;
-        min-height: 440px;
         border-radius: 12px;
     }
     
@@ -419,11 +407,11 @@
         <input type="hidden" name="mileage" id="formMileage" value="15">
         <input type="hidden" name="fuel_price" id="formFuelPrice" value="{{ session.get('price_petrol', 102.0) }}">
         
-        <!-- MAIN WORKSPACE: 3-Column Grid (25% / 50% / 25%) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2 mb-8 items-stretch">
+        <!-- MAIN WORKSPACE: Responsive 3-Column Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-12 gap-6 px-2 mb-8 items-stretch">
             
-            <!-- LEFT PANEL: Campaign Selection Center (lg:col-span-3) -->
-            <details class="group mobile-collapsible-card campaign-card lg:col-span-3 h-auto lg:h-[700px] flex flex-col order-2 lg:order-1" open>
+            <!-- LEFT PANEL: Campaign Selection Center -->
+            <details class="group mobile-collapsible-card campaign-card lg:col-span-2 xl:col-span-3 h-auto lg:h-[700px] flex flex-col order-2 xl:order-1" open>
                 <summary class="mobile-collapsible-summary">
                     <div class="flex items-center gap-3">
                         <div class="w-1.5 h-6 bg-primary rounded-full"></div>
@@ -556,8 +544,8 @@
                 </div>
             </details>
 
-            <!-- CENTER PANEL: Route Intelligence Center (lg:col-span-6) -->
-            <div class="campaign-card lg:col-span-6 h-[50vh] sm:h-[55vh] lg:h-[700px] flex flex-col relative order-1 lg:order-2">
+            <!-- CENTER PANEL: Route Intelligence Center -->
+            <div class="campaign-card lg:col-span-4 xl:col-span-6 h-[45vh] sm:h-[55vh] lg:h-[700px] flex flex-col relative order-1 xl:order-2">
                 <div class="flex items-center justify-between gap-3 mb-4 pb-2 border-b border-gray-100 dark:border-white/5 flex-shrink-0">
                     <div class="flex items-center gap-3">
                         <div class="w-1.5 h-6 bg-primary rounded-full"></div>
@@ -672,8 +660,8 @@
                 </div>
             </div>
 
-            <!-- RIGHT PANEL: Controller & Schedule (lg:col-span-3) -->
-            <details class="group mobile-collapsible-card campaign-card lg:col-span-3 h-auto lg:h-[700px] flex flex-col order-3 lg:order-3" open>
+            <!-- RIGHT PANEL: Controller & Schedule -->
+            <details class="group mobile-collapsible-card campaign-card lg:col-span-2 xl:col-span-3 h-auto lg:h-[700px] flex flex-col order-3 xl:order-3" open>
                 <summary class="mobile-collapsible-summary">
                     <div class="flex items-center gap-3">
                         <div class="w-1.5 h-4 bg-secondary rounded-full"></div>
@@ -695,7 +683,7 @@
                             <select id="vehicleSelector" class="fw-input py-1.5 px-3 text-xs" onchange="selectVehicle(this.value)">
                                 <option value="">-- Custom Parameters --</option>
                                 {% for v in vehicles %}
-                                <option value="{{ v.id }}">{{ v.vehicle_name }} ({{ v.fuel_type }})</option>
+                                <option value="{{ v.id }}" {% if active_vehicle_id and active_vehicle_id == v.id %}selected{% endif %}>{{ v.vehicle_name }} ({{ v.fuel_type }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -949,6 +937,12 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         window.initCampaignMap();
+
+        // Auto-populate vehicle specs if active vehicle is pre-selected
+        const vehicleSel = document.getElementById('vehicleSelector');
+        if (vehicleSel && vehicleSel.value) {
+            window.selectVehicle(vehicleSel.value);
+        }
     });
 </script>
 {% endblock content %}

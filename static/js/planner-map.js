@@ -978,6 +978,7 @@ window.initPlannerMap = async function() {
     map = L.map('plannerMap', {
         zoomControl: true,
         attributionControl: false,
+        preferCanvas: true,
         zoomAnimation: true,
         markerZoomAnimation: true,
         fadeAnimation: true,

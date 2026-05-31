@@ -398,7 +398,7 @@
                                         <select name="vehicle_id" class="fw-input" onchange="autoFillVehicle(this)">
                                             <option value="">Manual Entry</option>
                                             {% for v in vehicles %}
-                                            <option value="{{ v.id }}" {% if form.get('vehicle_id') == v.id %}selected{% endif %}>
+                                            <option value="{{ v.id }}" {% if form.get('vehicle_id') == v.id or (not form.get('vehicle_id') and active_vehicle_id and active_vehicle_id == v.id) %}selected{% endif %}>
                                                 {{ v.vehicle_name }}
                                             </option>
                                             {% endfor %}
@@ -648,6 +648,12 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         window.initPlannerMap();
+
+        // Auto-populate vehicle specs if active vehicle is pre-selected
+        const vehicleSel = document.querySelector('select[name="vehicle_id"]');
+        if (vehicleSel && vehicleSel.value) {
+            window.autoFillVehicle(vehicleSel);
+        }
     });
 </script>
 {% endblock content %}

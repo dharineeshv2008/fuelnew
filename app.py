@@ -52,6 +52,7 @@ def inject_globals():
         "format_currency": lambda x: format_currency(x, currency),
         "now": datetime.now(),
         "user": session.get("user"),
+        "active_vehicle_id": session.get("active_vehicle_id"),
         "price_petrol": session.get("price_petrol", 100.0),
         "price_diesel": session.get("price_diesel", 90.0),
         "price_cng": session.get("price_cng", 85.0),
@@ -296,14 +297,27 @@ def vehicles():
                     "year": request.form.get("year", "").strip()
                 }
                 session["demo_vehicles"] = session.get("demo_vehicles", []) + [vehicle]
+                
+                # Auto-set the first vehicle as active if none is active
+                if not session.get("active_vehicle_id"):
+                    session["active_vehicle_id"] = vehicle["id"]
+                    
                 session.modified = True
                 flash(f"Vehicle '{name}' added! (Demo Mode)", "success")
                 return redirect(url_for("vehicles"))
         elif action == "delete":
             vid = request.form.get("vehicle_id")
             session["demo_vehicles"] = [v for v in session.get("demo_vehicles", []) if v["id"] != vid]
+            if session.get("active_vehicle_id") == vid:
+                session["active_vehicle_id"] = None
             session.modified = True
             flash("Vehicle removed.", "info")
+            return redirect(url_for("vehicles"))
+        elif action == "set_active":
+            vid = request.form.get("vehicle_id")
+            session["active_vehicle_id"] = vid
+            session.modified = True
+            flash("Active vehicle selected.", "success")
             return redirect(url_for("vehicles"))
 
     return render_template("vehicles.html", vehicles=store.get("demo_vehicles", []))
