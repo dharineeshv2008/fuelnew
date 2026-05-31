@@ -919,6 +919,7 @@ window.initCampaignMap = async function() {
         doubleClickZoom: true,
         tap: !L.Browser.mobile
     }).setView([11.1271, 78.6569], 7);
+    window.map = map;
     
     // Optimized TileLayer for fast preloading & buffer caching to prevent white flashes
     const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {

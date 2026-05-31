@@ -204,19 +204,40 @@
             </nav>
 
             {% if user %}
-            <div class="fw-sidebar-profile">
-                <div class="fw-sidebar-profile-card">
+            <div class="fw-sidebar-profile relative">
+                <button type="button" id="profileDropdownBtn" class="fw-sidebar-profile-card w-full text-left focus:outline-none flex items-center gap-3">
                     <div class="fw-profile-avatar">
                         {{ user.name[0] | upper }}
                     </div>
-                    <div class="fw-profile-info">
-                        <span class="fw-profile-name">{{ user.name }}</span>
-                        <span class="fw-profile-email">{{ user.email }}</span>
+                    <div class="fw-profile-info flex-1 min-w-0">
+                        <span class="fw-profile-name truncate block">{{ user.name }}</span>
+                        <span class="fw-profile-email truncate block text-xs">{{ user.email }}</span>
                     </div>
-                    <a href="{{ url_for('logout') }}" title="Logout" class="fw-profile-logout">
+                    <i class="fa-solid fa-ellipsis-vertical text-gray-400 dark:text-gray-500 text-xs ml-1"></i>
+                </button>
+                
+                <!-- Profile Dropdown Menu -->
+                <div id="profileDropdownMenu" class="absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl shadow-xl py-1 hidden flex-col z-[300]">
+                    <div class="px-4 py-2 border-b border-gray-150 dark:border-white/5">
+                        <span class="block text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Signed in as</span>
+                        <span class="block text-xs font-bold text-gray-700 dark:text-gray-300 truncate">{{ user.name }}</span>
+                    </div>
+                    <a href="{{ url_for('settings') }}" class="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-all">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/5 border-t border-gray-150 dark:border-white/5 transition-all">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>Logout</span>
                     </a>
                 </div>
+            </div>
+            {% else %}
+            <div class="fw-sidebar-profile">
+                <a href="{{ url_for('login') }}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition-all shadow-md shadow-primary/10">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    <span>Login / Sign In</span>
+                </a>
             </div>
             {% endif %}
         </aside>
@@ -283,6 +304,29 @@
                 const toggleSidebar = (show) => {
                     sb.classList.toggle('open', show);
                     if (backdrop) backdrop.classList.toggle('active', show);
+                    
+                    // Disable/enable map interactions to prevent touch capturing on mobile
+                    if (window.map) {
+                        try {
+                            if (show) {
+                                window.map.dragging?.disable();
+                                window.map.touchZoom?.disable();
+                                window.map.doubleClickZoom?.disable();
+                                window.map.scrollWheelZoom?.disable();
+                                window.map.boxZoom?.disable();
+                                window.map.keyboard?.disable();
+                            } else {
+                                window.map.dragging?.enable();
+                                window.map.touchZoom?.enable();
+                                window.map.doubleClickZoom?.enable();
+                                window.map.scrollWheelZoom?.enable();
+                                window.map.boxZoom?.enable();
+                                window.map.keyboard?.enable();
+                            }
+                        } catch (err) {
+                            console.warn("Could not toggle map interactions:", err);
+                        }
+                    }
                 };
 
                 btn.addEventListener('click', (e) => {
@@ -310,6 +354,31 @@
                     link.addEventListener("click", () => {
                         toggleSidebar(false);
                     });
+                });
+            }
+
+            // Profile Dropdown Toggle Logic
+            const profileBtn = document.getElementById("profileDropdownBtn");
+            const profileMenu = document.getElementById("profileDropdownMenu");
+            if (profileBtn && profileMenu) {
+                profileBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const isHidden = profileMenu.classList.contains("hidden");
+                    if (isHidden) {
+                        profileMenu.classList.remove("hidden");
+                        profileMenu.classList.add("flex");
+                    } else {
+                        profileMenu.classList.remove("flex");
+                        profileMenu.classList.add("hidden");
+                    }
+                });
+                
+                // Close dropdown on click outside
+                document.addEventListener("click", (e) => {
+                    if (profileMenu.classList.contains("flex") && !profileMenu.contains(e.target) && e.target !== profileBtn) {
+                        profileMenu.classList.remove("flex");
+                        profileMenu.classList.add("hidden");
+                    }
                 });
             }
 

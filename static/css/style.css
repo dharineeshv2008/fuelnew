@@ -101,6 +101,8 @@ body {
     gap: 32px;
     max-width: 100%;
     transition: margin-left 0.3s var(--transition);
+    position: relative;
+    z-index: 1;
 }
 
 .content-container {
@@ -132,7 +134,7 @@ input[type=number] {
     flex-direction: column;
     background-color: var(--bg-surface);
     border-right: 1px solid var(--border-color);
-    z-index: 50;
+    z-index: 200;
     transition: transform 0.3s var(--transition), background-color 0.3s var(--transition);
     overflow: hidden;
 }
@@ -608,7 +610,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    z-index: 10000;
+    z-index: 700;
 }
 
 .fw-toast {
@@ -798,6 +800,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .fw-sidebar.open {
         transform: translateX(0);
         pointer-events: auto; /* Open state */
+        z-index: 400;
     }
 }
 
@@ -979,7 +982,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     background: rgba(8, 18, 13, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    z-index: 99;
+    z-index: 300;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
