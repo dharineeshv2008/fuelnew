@@ -47,6 +47,30 @@
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
+
+    /* ── DESIGN TOKEN SYSTEM ────────────────────────── */
+
+    /* Spacing Scale */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* Control Heights */
+    --ctrl-sm:  36px;
+    --ctrl-md:  44px;
+    --ctrl-lg:  48px;
+
+    /* Typography Scale */
+    --text-xs:   0.72rem;    /* ~11.5px — Caption / Label uppercase */
+    --text-sm:   0.825rem;   /* ~13.2px — Body small */
+    --text-base: 0.925rem;   /* ~14.8px — Body default */
+    --text-md:   1.05rem;    /* ~16.8px — Subheading */
+    --text-lg:   1.2rem;     /* ~19.2px — H3 */
+    --text-xl:   1.45rem;    /* ~23.2px — H2 */
+    --text-2xl:  1.875rem;   /* ~30px   — H1 page title */
 }
 
 [data-theme="light"] {
@@ -357,20 +381,68 @@ input[type=number] {
 }
 
 /* ═══════════════════════════════════
-   TYPOGRAPHY
+   TYPOGRAPHY SYSTEM
    ═══════════════════════════════════ */
-h1 { font-size: clamp(1.45rem, 4vw, 1.875rem) !important; }
-h2 { font-size: clamp(1.2rem, 3vw, 1.5rem) !important; }
-h3 { font-size: clamp(1.05rem, 2.5vw, 1.25rem) !important; }
-h1, h2, h3, h4, h5 {
-    font-weight: 700;
+h1 {
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+    font-weight: 800;
     letter-spacing: -0.5px;
     color: var(--text-primary);
 }
+h2 {
+    font-size: var(--text-xl);
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    color: var(--text-primary);
+}
+h3 {
+    font-size: var(--text-lg);
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text-primary);
+}
+h4 {
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+h5 {
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* Card title — single-line with ellipsis to prevent awkward wrapping */
+.fw-card-title {
+    font-size: var(--text-base);
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Section label — uppercase caption above a form group or section */
+.fw-section-label {
+    font-size: var(--text-xs);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: var(--space-2);
+}
 
 .text-caption {
-    font-size: 0.78rem;
-    font-weight: 600;
+    font-size: var(--text-xs);
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-muted);
@@ -382,18 +454,38 @@ h1, h2, h3, h4, h5 {
 .fw-input-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-6);
     position: relative;
+}
+
+/* Two-column equal-width field grid */
+.fw-field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
 }
 
 .fw-label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 0.78rem;
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+/* Compact label for dense form sections (campaign right panel) */
+.fw-label-sm {
+    display: block;
+    margin-bottom: var(--space-1);
+    font-size: var(--text-xs);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
+    line-height: 1;
 }
 
 .fw-input, .fw-select {
@@ -401,13 +493,30 @@ h1, h2, h3, h4, h5 {
     background-color: var(--input-bg);
     border: 1px solid var(--input-border);
     border-radius: var(--radius-md);
-    padding: 12px 16px;
+    padding: 0 var(--space-4);
     color: var(--text-primary);
-    font-size: 0.95rem;
+    font-size: var(--text-base);
     font-family: inherit;
     transition: var(--transition);
     outline: none;
-    height: 48px;
+    height: var(--ctrl-lg);
+    display: flex;
+    align-items: center;
+    line-height: 1;
+}
+
+/* Native inputs need box-sizing handled differently */
+input.fw-input, select.fw-select {
+    display: block;
+    line-height: var(--ctrl-lg);
+}
+
+/* Small input variant for dense panels */
+.fw-input-sm {
+    height: var(--ctrl-md) !important;
+    font-size: var(--text-sm) !important;
+    padding: 0 var(--space-3) !important;
+    border-radius: var(--radius-sm) !important;
 }
 
 .fw-input:focus, .fw-select:focus {
@@ -430,20 +539,25 @@ h1, h2, h3, h4, h5 {
 /* Custom Dropdown Trigger */
 .fw-select-trigger {
     width: 100%;
-    height: 48px;
+    height: var(--ctrl-lg);
     background-color: var(--input-bg);
     border: 1px solid var(--input-border);
     border-radius: var(--radius-md);
-    padding: 0 16px;
+    padding: 0 var(--space-4);
     color: var(--text-primary);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: var(--text-base);
     display: flex;
     align-items: center;
     position: relative;
     cursor: pointer;
     user-select: none;
     transition: var(--transition);
+    line-height: 1;
+}
+
+.fw-select-custom {
+    position: relative;
 }
 
 .fw-select-custom.open .fw-select-trigger {
@@ -521,16 +635,104 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* ═══════════════════════════════════
    PREMIUM BUTTONS
    ═══════════════════════════════════ */
+/* ═══════════════════════════════════
+   FUEL TYPE TAB SYSTEM
+   ═══════════════════════════════════ */
+.fw-tab-group {
+    display: flex;
+    gap: 3px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    width: 100%;
+}
+
+[data-theme="light"] .fw-tab-group {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.fw-tab {
+    flex: 1;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    white-space: nowrap;
+    padding: 0 4px;
+}
+
+.fw-tab:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .fw-tab:hover:not(.active) {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-primary);
+}
+
+.fw-tab.active {
+    background: var(--brand-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 123, 83, 0.35);
+}
+
+/* ─── STAT CARD COMPACT VARIANT ──── */
+.fw-stat-card {
+    padding: 20px 24px;
+}
+
+.fw-stat-card .fw-stat-value {
+    font-size: var(--text-xl);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    margin-bottom: var(--space-2);
+    color: var(--text-primary);
+}
+
+.fw-stat-card .fw-stat-label {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+}
+
+.fw-stat-card .fw-stat-meta {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ═══════════════════════════════════
+   PREMIUM BUTTONS
+   ═══════════════════════════════════ */
 .fw-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 10px 20px;
-    height: 48px;
+    gap: var(--space-2);
+    padding: 0 var(--space-6);
+    height: var(--ctrl-lg);
     border-radius: var(--radius-md);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--text-base);
     cursor: pointer;
     border: none;
     text-decoration: none;
@@ -1125,21 +1327,22 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
     /* Typography Scale Overrides */
     h1 {
-        font-size: 1.65rem !important;
+        font-size: 1.5rem !important;
         line-height: 1.25 !important;
     }
     h2 {
-        font-size: 1.35rem !important;
+        font-size: 1.25rem !important;
         line-height: 1.3 !important;
     }
     h3 {
-        font-size: 1.15rem !important;
+        font-size: 1.05rem !important;
+        line-height: 1.35 !important;
     }
     .text-3xl {
-        font-size: 1.6rem !important;
+        font-size: 1.5rem !important;
     }
     .text-2xl {
-        font-size: 1.3rem !important;
+        font-size: 1.25rem !important;
     }
 
     /* Table to Card Conversions on Mobile */

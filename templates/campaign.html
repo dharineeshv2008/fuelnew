@@ -54,7 +54,7 @@
     /* Accordion Custom Styling */
     .district-accordion-item {
         border: 1px solid var(--border-color);
-        border-radius: 10px;
+        border-radius: var(--radius-sm);
         margin-bottom: 6px;
         overflow: hidden;
         background: rgba(255, 255, 255, 0.01);
@@ -65,11 +65,18 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 14px;
+        padding: 11px 14px;
         background: rgba(255, 255, 255, 0.02);
         cursor: pointer;
         user-select: none;
         transition: background-color 0.2s;
+        min-height: 40px;
+    }
+    
+    .district-accordion-header .district-name {
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--text-primary);
     }
     
     .district-accordion-header:hover {
@@ -77,9 +84,9 @@
     }
     
     .district-accordion-content {
-        padding: 10px 14px;
+        padding: 8px 12px;
         border-top: 1px solid var(--border-color);
-        background: rgba(0, 0, 0, 0.1);
+        background: rgba(0, 0, 0, 0.08);
     }
     
     [data-theme="light"] .district-accordion-content {
@@ -90,11 +97,12 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 6px 8px;
+        padding: 7px 10px;
         border-radius: 6px;
         transition: background-color 0.2s;
         cursor: pointer;
         user-select: none;
+        min-height: 36px;
     }
     
     .const-item-checkbox:hover {
@@ -103,10 +111,18 @@
     
     .const-item-checkbox input[type="checkbox"] {
         accent-color: var(--brand-primary);
-        width: 15px;
-        height: 15px;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
         cursor: pointer;
         transform: none !important;
+    }
+
+    .const-item-label {
+        font-size: var(--text-sm);
+        font-weight: 500;
+        color: var(--text-secondary);
+        line-height: 1.3;
     }
 
     .chevron-icon {
@@ -415,7 +431,7 @@
                 <summary class="mobile-collapsible-summary">
                     <div class="flex items-center gap-3">
                         <div class="w-1.5 h-6 bg-primary rounded-full"></div>
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">{% if active_tab == 'constituency' %}Constituency Selection{% else %}District Selection{% endif %}</h3>
+                        <h3 class="fw-card-title">{% if active_tab == 'constituency' %}Constituency Selection{% else %}District Selection{% endif %}</h3>
                     </div>
                     <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
                 </summary>
@@ -488,7 +504,7 @@
                                     {% endif %}
                                     <label class="const-item-checkbox" data-name="{{ c.name }} {{ district }}">
                                         <input type="checkbox" name="constituency_ids[]" value="{{ c.id }}" class="const-check" data-district-id="{{ dist_id }}" onchange="updateCount(this)" {% if is_selected %}checked{% endif %}>
-                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ c.name }}</span>
+                                        <span class="const-item-label">{{ c.name }}</span>
                                     </label>
                                     {% endfor %}
                                 </div>
@@ -626,34 +642,34 @@
                 </div>
 
                 <!-- Unified Statistics Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mt-4 flex-shrink-0">
-                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
-                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5" id="statsStopsLabel">Stops</p>
-                        <p class="text-[11px] font-black text-white" id="statsStopsVal">
+                <div class="grid grid-cols-5 gap-2 mt-4 flex-shrink-0">
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-lg p-3 text-center">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1" id="statsStopsLabel">Stops</p>
+                        <p class="text-sm font-black text-white" id="statsStopsVal">
                             {% if result %}{{ result.route|length }}{% else %}0{% endif %}
                         </p>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
-                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Distance</p>
-                        <p class="text-[11px] font-black text-primary" id="statsDistVal">
-                            {% if result %}{{ result.total_km }} km{% else %}0 km{% endif %}
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-lg p-3 text-center">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">Dist</p>
+                        <p class="text-sm font-black text-primary" id="statsDistVal">
+                            {% if result %}{{ result.total_km }}{% else %}0{% endif %}
                         </p>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
-                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Fuel</p>
-                        <p class="text-[11px] font-black text-secondary" id="statsFuelVal">
-                            {% if result %}{{ result.fuel_needed }} L{% else %}0 L{% endif %}
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-lg p-3 text-center">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">Fuel</p>
+                        <p class="text-sm font-black text-secondary" id="statsFuelVal">
+                            {% if result %}{{ result.fuel_needed }}L{% else %}0L{% endif %}
                         </p>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
-                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Cost</p>
-                        <p class="text-[11px] font-black text-warning" id="statsCostVal">
-                            {% if result %}{{ result.currency }}{{ "{:,.0f}".format(result.total_cost) }}{% else %}₹0{% endif %}
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-lg p-3 text-center">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">Cost</p>
+                        <p class="text-sm font-black text-warning" id="statsCostVal">
+                            {% if result %}{{ "{:,.0f}".format(result.total_cost) }}{% else %}0{% endif %}
                         </p>
                     </div>
-                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-2 text-center">
-                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Days</p>
-                        <p class="text-[11px] font-black text-white" id="statsDaysVal">
+                    <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-lg p-3 text-center">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">Days</p>
+                        <p class="text-sm font-black text-white" id="statsDaysVal">
                             {% if result %}{{ result.days }}{% else %}0{% endif %}
                         </p>
                     </div>
@@ -689,66 +705,66 @@
                         </div>
 
                         <!-- Fuel Parameter Tabs -->
-                        <div class="flex gap-1 bg-gray-100 dark:bg-white/5 rounded-xl p-1 mb-3 text-[10px] font-bold w-full">
-                            <button type="button" id="fuelTabPetrol" onclick="switchFuelType('Petrol')" class="flex-1 py-1 rounded-lg text-center transition-all bg-primary text-white">Petrol</button>
-                            <button type="button" id="fuelTabDiesel" onclick="switchFuelType('Diesel')" class="flex-1 py-1 rounded-lg text-center transition-all text-gray-400 hover:text-white">Diesel</button>
-                            <button type="button" id="fuelTabElectric" onclick="switchFuelType('Electric')" class="flex-1 py-1 rounded-lg text-center transition-all text-gray-400 hover:text-white">Electric</button>
-                            <button type="button" id="fuelTabCNG" onclick="switchFuelType('CNG')" class="flex-1 py-1 rounded-lg text-center transition-all text-gray-400 hover:text-white">CNG</button>
+                        <div class="fw-tab-group mb-3">
+                            <button type="button" id="fuelTabPetrol" onclick="switchFuelType('Petrol')" class="fw-tab active">Petrol</button>
+                            <button type="button" id="fuelTabDiesel" onclick="switchFuelType('Diesel')" class="fw-tab">Diesel</button>
+                            <button type="button" id="fuelTabElectric" onclick="switchFuelType('Electric')" class="fw-tab">EV</button>
+                            <button type="button" id="fuelTabCNG" onclick="switchFuelType('CNG')" class="fw-tab">CNG</button>
                         </div>
 
                         <!-- Dynamic Input Fields -->
                         <div id="paramsPetrol" class="space-y-3">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="fw-field-grid">
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Mileage (km/L)</label>
-                                    <input type="number" id="petrolMileage" value="15" step="0.1" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Mileage (km/L)</label>
+                                    <input type="number" id="petrolMileage" value="15" step="0.1" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Price (₹/L)</label>
-                                    <input type="number" id="petrolPrice" value="{{ session.get('price_petrol', 102.0) }}" step="0.01" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Price (₹/L)</label>
+                                    <input type="number" id="petrolPrice" value="{{ session.get('price_petrol', 102.0) }}" step="0.01" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                             </div>
                         </div>
 
                         <div id="paramsDiesel" class="space-y-3 hidden">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="fw-field-grid">
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Mileage (km/L)</label>
-                                    <input type="number" id="dieselMileage" value="18" step="0.1" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Mileage (km/L)</label>
+                                    <input type="number" id="dieselMileage" value="18" step="0.1" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Price (₹/L)</label>
-                                    <input type="number" id="dieselPrice" value="{{ session.get('price_diesel', 89.0) }}" step="0.01" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Price (₹/L)</label>
+                                    <input type="number" id="dieselPrice" value="{{ session.get('price_diesel', 89.0) }}" step="0.01" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                             </div>
                         </div>
 
                         <div id="paramsElectric" class="space-y-3 hidden">
-                            <div class="grid grid-cols-3 gap-2">
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3)">
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Range (km)</label>
-                                    <input type="number" id="evRange" value="350" step="1" class="fw-input py-1.5 px-2 text-[10px]" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Range (km)</label>
+                                    <input type="number" id="evRange" value="350" step="1" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Batt (kWh)</label>
-                                    <input type="number" id="evBattery" value="60" step="1" class="fw-input py-1.5 px-2 text-[10px]" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Batt (kWh)</label>
+                                    <input type="number" id="evBattery" value="60" step="1" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Cost/kWh</label>
-                                    <input type="number" id="evPrice" value="{{ session.get('price_ev', 8.0) }}" step="0.1" class="fw-input py-1.5 px-2 text-[10px]" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Cost/kWh</label>
+                                    <input type="number" id="evPrice" value="{{ session.get('price_ev', 8.0) }}" step="0.1" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                             </div>
                         </div>
 
                         <div id="paramsCNG" class="space-y-3 hidden">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="fw-field-grid">
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Mileage (km/kg)</label>
-                                    <input type="number" id="cngMileage" value="20" step="0.1" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Mileage (km/kg)</label>
+                                    <input type="number" id="cngMileage" value="20" step="0.1" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                                 <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 block">Gas Price</label>
-                                    <input type="number" id="cngPrice" value="{{ session.get('price_cng', 75.0) }}" step="0.01" class="fw-input py-1.5 px-3 text-xs" oninput="syncVehicleInputs()" required>
+                                    <label class="fw-label-sm">Gas Price</label>
+                                    <input type="number" id="cngPrice" value="{{ session.get('price_cng', 75.0) }}" step="0.01" class="fw-input fw-input-sm" oninput="syncVehicleInputs()" required>
                                 </div>
                             </div>
                         </div>
@@ -766,7 +782,7 @@
                     <div class="flex-1 min-h-0 flex flex-col border-t border-gray-100 dark:border-white/5 pt-3">
                         <div class="flex items-center gap-3 mb-2 flex-shrink-0">
                             <div class="w-1.5 h-4 bg-warning rounded-full"></div>
-                            <h3 class="text-xs font-bold text-gray-900 dark:text-white">Campaign Tour Schedule</h3>
+                            <h3 class="fw-card-title">Campaign Tour Schedule</h3>
                         </div>
 
                         <div id="tourScheduleWrapper" class="flex-1 overflow-y-auto pr-1 max-h-[300px] lg:max-h-none" style="scrollbar-width: thin;">

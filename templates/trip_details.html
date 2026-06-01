@@ -1,0 +1,893 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="animate-fade-up max-w-6xl mx-auto" id="page-trip-details">
+    <!-- Navigation Back & Actions -->
+    <div class="flex justify-between items-center mb-6 px-2">
+        <a href="{{ url_for('trip_planner') }}" class="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-primary transition-all">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to Dashboard</span>
+        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ url_for('trip_export', trip_id=trip_id) }}" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 text-xs font-bold transition-all hover:bg-gray-200 dark:hover:bg-white/10">
+                <i class="fa-solid fa-file-export"></i>
+                <span>Export Report</span>
+            </a>
+            <button onclick="handleDeleteTrip()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-xs font-bold transition-all">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Delete Trip</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="fw-card mb-8 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-2">
+                <span id="trip-category-badge" class="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-primary/10 border border-primary/20 text-primary">Leisure</span>
+                <span id="trip-date-range" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Date</span>
+            </div>
+            <h1 id="trip-title" class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white mt-1">Trip Name</h1>
+            <p id="trip-dest" class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                <i class="fa-solid fa-location-dot text-primary"></i>
+                Destination
+            </p>
+        </div>
+
+        <!-- Status and Star Rating -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 w-full md:w-auto">
+            <div>
+                <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Trip Status</label>
+                <select id="trip-status-select" onchange="updateTripStatus(this.value)" class="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-bold text-gray-800 dark:text-white focus:outline-none focus:border-primary">
+                    <option value="Planned">Planned</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            
+            <div id="trip-rating-container" class="hidden">
+                <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Trip Experience Rating</label>
+                <div class="flex items-center gap-1 text-lg text-gray-300 dark:text-gray-600">
+                    <button onclick="setTripRating(1)" id="star-1" class="hover:scale-110 transition-all"><i class="fa-solid fa-star"></i></button>
+                    <button onclick="setTripRating(2)" id="star-2" class="hover:scale-110 transition-all"><i class="fa-solid fa-star"></i></button>
+                    <button onclick="setTripRating(3)" id="star-3" class="hover:scale-110 transition-all"><i class="fa-solid fa-star"></i></button>
+                    <button onclick="setTripRating(4)" id="star-4" class="hover:scale-110 transition-all"><i class="fa-solid fa-star"></i></button>
+                    <button onclick="setTripRating(5)" id="star-5" class="hover:scale-110 transition-all"><i class="fa-solid fa-star"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-2 mb-16">
+        
+        <!-- Left Column: Budgets, Expenses, Packing (7 cols) -->
+        <div class="lg:col-span-7 space-y-8">
+            
+            <!-- BUDGET PLANNER & EXPENSE TRACKER -->
+            <div class="fw-card">
+                <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-wallet text-primary"></i> Budget & Expenses
+                    </h3>
+                    <div class="flex items-baseline gap-1 text-xs font-semibold text-gray-500">
+                        <span>Total Spent:</span>
+                        <span id="budget-total-spent" class="font-extrabold text-primary">₹0</span>
+                        <span>/</span>
+                        <span id="budget-total-limit" class="font-bold">₹0</span>
+                    </div>
+                </div>
+
+                <!-- Budget Limits Controls -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                    <div>
+                        <span class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Fuel Budget</span>
+                        <input type="number" id="budget-limit-Fuel" onchange="updateBudgetLimit('Fuel', this.value)" class="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <span class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Food Budget</span>
+                        <input type="number" id="budget-limit-Food" onchange="updateBudgetLimit('Food', this.value)" class="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <span class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Lodging Budget</span>
+                        <input type="number" id="budget-limit-Lodging" onchange="updateBudgetLimit('Lodging', this.value)" class="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <span class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Others Budget</span>
+                        <input type="number" id="budget-limit-Others" onchange="updateBudgetLimit('Others', this.value)" class="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                    </div>
+                </div>
+
+                <!-- Budget category tracking bars -->
+                <div id="budget-category-bars" class="space-y-3 mb-8">
+                    <!-- Dynamic rendering of bars -->
+                </div>
+
+                <!-- Expense Logger Form -->
+                <div class="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                    <span class="block text-[10px] font-bold uppercase tracking-widest text-primary mb-3">Log Expense Entry</span>
+                    <form onsubmit="handleAddExpense(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                        <div class="sm:col-span-3">
+                            <label class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Amount</label>
+                            <input type="number" id="exp-amount" required placeholder="e.g. 500" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Category</label>
+                            <select id="exp-category" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                                <option value="Fuel">Fuel</option>
+                                <option value="Food">Food</option>
+                                <option value="Lodging">Lodging</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-4">
+                            <label class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Description</label>
+                            <input type="text" id="exp-desc" required placeholder="e.g. Highway toll" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <button type="submit" data-no-disable class="w-full px-3 py-2 text-xs font-bold rounded-xl bg-primary text-white shadow-lg shadow-primary/10 transition-all hover:bg-primary/95 text-center">
+                                <i class="fa-solid fa-check"></i> Log
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Expenses Table -->
+                <div class="mt-6 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-100 dark:border-white/5 text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                                <th class="py-2.5 px-3">Date</th>
+                                <th class="py-2.5 px-3">Category</th>
+                                <th class="py-2.5 px-3">Description</th>
+                                <th class="py-2.5 px-3 text-right">Amount</th>
+                                <th class="py-2.5 px-3 text-center">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenses-tbody" class="text-xs font-medium text-gray-700 dark:text-gray-300 divide-y divide-gray-100 dark:divide-white/5">
+                            <!-- Dynamic render -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PACKING CHECKLIST -->
+            <div class="fw-card">
+                <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-primary"></i> Packing Checklist
+                    </h3>
+                    <span id="checklist-progress-text" class="text-xs font-bold text-gray-400">0/0 Packed</span>
+                </div>
+
+                <!-- Add packing item form -->
+                <form onsubmit="handleAddChecklistItem(event)" class="flex gap-2.5 mb-6">
+                    <input type="text" id="chk-new-item" required placeholder="Add item to checklist... e.g. Passports" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:outline-none focus:border-primary text-xs font-semibold text-gray-900 dark:text-white">
+                    <button type="submit" data-no-disable class="px-4 py-2.5 bg-primary hover:bg-primary/95 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-primary/10">Add</button>
+                </form>
+
+                <!-- Checklist List -->
+                <div id="checklist-container" class="space-y-2">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Timeline, Notes, Photos (5 cols) -->
+        <div class="lg:col-span-5 space-y-8">
+            
+            <!-- TRIP TIMELINE (ITINERARY) -->
+            <div class="fw-card">
+                <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-primary"></i> Itinerary & Timeline
+                    </h3>
+                    <span id="timeline-progress-text" class="text-xs font-bold text-gray-400">0/0 Done</span>
+                </div>
+
+                <!-- Add checkpoint form -->
+                <form onsubmit="handleAddTimelineItem(event)" class="space-y-3 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 mb-6">
+                    <div class="grid grid-cols-12 gap-2">
+                        <input type="text" id="tl-time" required placeholder="e.g. 08:30 AM" class="col-span-4 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                        <input type="text" id="tl-activity" required placeholder="Activity... e.g. Highway break" class="col-span-8 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                    </div>
+                    <button type="submit" data-no-disable class="w-full py-2 bg-secondary text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-secondary/10">Add Checkpoint</button>
+                </form>
+
+                <!-- Timeline List -->
+                <div id="timeline-container" class="space-y-4 relative border-l border-gray-100 dark:border-white/5 pl-4 ml-2">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+
+            <!-- TRAVEL NOTES -->
+            <div class="fw-card">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4 pb-2 border-b border-gray-100 dark:border-white/5">
+                    <i class="fa-solid fa-clipboard text-primary"></i> Travel Notes & Reminders
+                </h3>
+                <textarea id="trip-notes" oninput="saveNotes(this.value)" rows="5" placeholder="Draft notes here about locations, phone numbers, parking cards, or route memories..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:outline-none focus:border-primary text-xs font-semibold text-gray-900 dark:text-white resize-y"></textarea>
+                <div class="text-[9px] font-semibold text-gray-400 mt-2 text-right">Auto-saved to localStorage</div>
+            </div>
+
+            <!-- PHOTO GALLERY -->
+            <div class="fw-card">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6 pb-2 border-b border-gray-100 dark:border-white/5">
+                    <i class="fa-solid fa-images text-primary"></i> Snaps & Photo Gallery
+                </h3>
+
+                <!-- Add photo form -->
+                <form onsubmit="handleAddPhoto(event)" class="space-y-3 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 mb-6">
+                    <div>
+                        <label class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Image URL</label>
+                        <input type="url" id="photo-url" required placeholder="https://unsplash.com/..." class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-[8px] font-bold uppercase tracking-wider text-gray-400 mb-1">Caption</label>
+                        <input type="text" id="photo-caption" placeholder="Caption... e.g. Scenic lake waypoint" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-primary">
+                    </div>
+                    <button type="submit" data-no-disable class="w-full py-2 bg-primary text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-primary/10">Add Photo</button>
+                </form>
+
+                <!-- Photos Grid -->
+                <div id="photos-grid" class="grid grid-cols-2 gap-3">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const currentTripId = "{{ trip_id }}";
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `fw-toast ${type} show`;
+        
+        let iconClass = 'fa-circle-info';
+        if (type === 'success') iconClass = 'fa-circle-check';
+        else if (type === 'error') iconClass = 'fa-circle-xmark';
+        else if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+
+        toast.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${message}</span>`;
+        const container = document.getElementById('toastContainer');
+        if (container) {
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        } else {
+            console.info("[Toast Warning] No container: " + message);
+        }
+    }
+
+    function setButtonLoading(btn, loading, loadingText = 'Please wait...') {
+        if (!btn) return;
+        if (loading) {
+            btn._originalHTML = btn.innerHTML;
+            btn.disabled      = true;
+            btn.innerHTML = `
+                <span style="display:inline-flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:fw-spin 0.8s linear infinite;color:currentColor;">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20" stroke-linecap="round"/>
+                    </svg>
+                    ${loadingText}
+                </span>
+            `;
+        } else {
+            btn.disabled  = false;
+            btn.innerHTML = btn._originalHTML || btn.innerHTML;
+            delete btn._originalHTML;
+        }
+        if (!document.getElementById('fw-spin-style')) {
+            const style  = document.createElement('style');
+            style.id     = 'fw-spin-style';
+            style.textContent = '@keyframes fw-spin { to { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+        }
+    }
+
+    function getTrips() {
+        const raw = localStorage.getItem('fw-managed-trips');
+        return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveTrips(trips) {
+        localStorage.setItem('fw-managed-trips', JSON.stringify(trips));
+    }
+
+    function getCurrentTrip() {
+        const trips = getTrips();
+        return trips.find(x => x.id === currentTripId);
+    }
+
+    function saveCurrentTrip(trip) {
+        const trips = getTrips();
+        const idx = trips.findIndex(x => x.id === currentTripId);
+        if (idx !== -1) {
+            trips[idx] = trip;
+            saveTrips(trips);
+            renderTripWorkspace();
+        }
+    }
+
+    // Delete Trip
+    function handleDeleteTrip() {
+        if (confirm("Are you sure you want to permanently delete this trip?")) {
+            const trips = getTrips().filter(x => x.id !== currentTripId);
+            saveTrips(trips);
+            window.location.href = "{{ url_for('trip_planner') }}";
+        }
+    }
+
+    // Update Status
+    function updateTripStatus(val) {
+        const trip = getCurrentTrip();
+        if (trip) {
+            trip.status = val;
+            saveCurrentTrip(trip);
+        }
+    }
+
+    // Set Experience Rating
+    function setTripRating(val) {
+        const trip = getCurrentTrip();
+        if (trip) {
+            trip.rating = val;
+            saveCurrentTrip(trip);
+        }
+    }
+
+    // Update Budget Limit
+    function updateBudgetLimit(category, value) {
+        const trip = getCurrentTrip();
+        if (trip) {
+            trip.budget[category] = parseFloat(value) || 0;
+            saveCurrentTrip(trip);
+        }
+    }
+
+    // Add Expense
+    function handleAddExpense(e) {
+        e.preventDefault();
+        console.log("[Expense] Add Expense Button Clicked");
+        console.log("[Expense] Function handleAddExpense start");
+        
+        const form = e.target;
+        const submitBtn = form.querySelector("button[type='submit']");
+        
+        console.log("[Expense] Setting loading state");
+        setButtonLoading(submitBtn, true, 'Logging...');
+
+        try {
+            const trip = getCurrentTrip();
+            if (!trip) {
+                throw new Error("Active trip could not be resolved from local storage.");
+            }
+
+            const amountVal = document.getElementById('exp-amount').value;
+            const amount = parseFloat(amountVal) || 0;
+            const cat = document.getElementById('exp-category').value;
+            const desc = document.getElementById('exp-desc').value.trim();
+
+            console.log(`[Expense] Validating: amount=${amount}, category=${cat}, description='${desc}'`);
+
+            if (amount <= 0) {
+                throw new Error("Please enter a positive expense amount.");
+            }
+            if (!desc) {
+                throw new Error("Please enter an expense description.");
+            }
+
+            const newExp = {
+                id: 'exp-' + Math.random().toString(36).substr(2, 9),
+                category: cat,
+                amount: amount,
+                description: desc,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            trip.expenses.push(newExp);
+            saveCurrentTrip(trip);
+            console.log("[Expense] Saved to localStorage successfully");
+
+            // Reset inputs
+            document.getElementById('exp-amount').value = '';
+            document.getElementById('exp-desc').value = '';
+            
+            showToast("Expense logged successfully!", "success");
+            console.log("[Expense] Function handleAddExpense finish - Success");
+        } catch (error) {
+            console.error("[Expense] Function handleAddExpense finish - Error:", error);
+            showToast(error.message, "error");
+        } finally {
+            console.log("[Expense] Resetting loading state");
+            setButtonLoading(submitBtn, false);
+        }
+    }
+
+    // Delete Expense
+    function deleteExpense(expId) {
+        console.log(`[Expense] Delete requested for ID: ${expId}`);
+        try {
+            const trip = getCurrentTrip();
+            if (trip) {
+                trip.expenses = trip.expenses.filter(x => x.id !== expId);
+                saveCurrentTrip(trip);
+                showToast("Expense entry deleted.", "info");
+            }
+        } catch (error) {
+            console.error("[Expense] Delete failed:", error);
+            showToast("Failed to delete expense entry.", "error");
+        }
+    }
+
+    // Add Checklist Item
+    function handleAddChecklistItem(e) {
+        e.preventDefault();
+        console.log("[Checklist] Form submitted");
+
+        const form = e.target;
+        const submitBtn = form.querySelector("button[type='submit']");
+
+        console.log("[Checklist] Setting loading state");
+        setButtonLoading(submitBtn, true, 'Adding...');
+
+        try {
+            const trip = getCurrentTrip();
+            if (!trip) {
+                throw new Error("Active trip could not be resolved from local storage.");
+            }
+
+            const item = document.getElementById('chk-new-item').value.trim();
+            console.log(`[Checklist] Validating item: '${item}'`);
+            
+            if (!item) {
+                throw new Error("Checklist item cannot be empty.");
+            }
+
+            trip.checklist.push({
+                id: 'chk-' + Math.random().toString(36).substr(2, 9),
+                item: item,
+                checked: false
+            });
+
+            saveCurrentTrip(trip);
+            console.log("[Checklist] Saved item successfully");
+
+            document.getElementById('chk-new-item').value = '';
+            showToast("Checklist item added!", "success");
+        } catch (error) {
+            console.error("[Checklist] Exception caught:", error);
+            showToast(error.message, "error");
+        } finally {
+            console.log("[Checklist] Resetting loading state");
+            setButtonLoading(submitBtn, false);
+        }
+    }
+
+    // Toggle Checklist Item
+    function toggleChecklistItem(chkId, checked) {
+        console.log(`[Checklist] Toggle state for ID: ${chkId} to ${checked}`);
+        try {
+            const trip = getCurrentTrip();
+            if (trip) {
+                const idx = trip.checklist.findIndex(x => x.id === chkId);
+                if (idx !== -1) {
+                    trip.checklist[idx].checked = checked;
+                    saveCurrentTrip(trip);
+                }
+            }
+        } catch (error) {
+            console.error("[Checklist] Toggle failed:", error);
+        }
+    }
+
+    // Delete Checklist Item
+    function deleteChecklistItem(chkId) {
+        console.log(`[Checklist] Delete requested for ID: ${chkId}`);
+        try {
+            const trip = getCurrentTrip();
+            if (trip) {
+                trip.checklist = trip.checklist.filter(x => x.id !== chkId);
+                saveCurrentTrip(trip);
+                showToast("Checklist item deleted.", "info");
+            }
+        } catch (error) {
+            console.error("[Checklist] Delete failed:", error);
+        }
+    }
+
+    // Add Timeline Itinerary Activity
+    function handleAddTimelineItem(e) {
+        e.preventDefault();
+        console.log("[Timeline] Form submitted");
+
+        const form = e.target;
+        const submitBtn = form.querySelector("button[type='submit']");
+
+        console.log("[Timeline] Setting loading state");
+        setButtonLoading(submitBtn, true, 'Adding...');
+
+        try {
+            const trip = getCurrentTrip();
+            if (!trip) {
+                throw new Error("Active trip could not be resolved from local storage.");
+            }
+
+            const time = document.getElementById('tl-time').value.trim();
+            const act = document.getElementById('tl-activity').value.trim();
+            console.log(`[Timeline] Validating checkpoint: time='${time}', activity='${act}'`);
+
+            if (!time) {
+                throw new Error("Checkpoint time is required.");
+            }
+            if (!act) {
+                throw new Error("Checkpoint activity is required.");
+            }
+
+            trip.timeline.push({
+                id: 'tl-' + Math.random().toString(36).substr(2, 9),
+                time: time,
+                activity: act,
+                completed: false
+            });
+
+            saveCurrentTrip(trip);
+            console.log("[Timeline] Saved checkpoint successfully");
+
+            document.getElementById('tl-time').value = '';
+            document.getElementById('tl-activity').value = '';
+            showToast("Timeline checkpoint added!", "success");
+        } catch (error) {
+            console.error("[Timeline] Exception caught:", error);
+            showToast(error.message, "error");
+        } finally {
+            console.log("[Timeline] Resetting loading state");
+            setButtonLoading(submitBtn, false);
+        }
+    }
+
+    // Toggle Timeline Activity Status
+    function toggleTimelineItem(tlId, completed) {
+        console.log(`[Timeline] Toggle state for ID: ${tlId} to ${completed}`);
+        try {
+            const trip = getCurrentTrip();
+            if (trip) {
+                const idx = trip.timeline.findIndex(x => x.id === tlId);
+                if (idx !== -1) {
+                    trip.timeline[idx].completed = completed;
+                    saveCurrentTrip(trip);
+                }
+            }
+        } catch (error) {
+            console.error("[Timeline] Toggle failed:", error);
+        }
+    }
+
+    // Delete Timeline Itinerary activity
+    function deleteTimelineItem(tlId) {
+        console.log(`[Timeline] Delete requested for ID: ${tlId}`);
+        try {
+            const trip = getCurrentTrip();
+            if (trip) {
+                trip.timeline = trip.timeline.filter(x => x.id !== tlId);
+                saveCurrentTrip(trip);
+                showToast("Itinerary checkpoint deleted.", "info");
+            }
+        } catch (error) {
+            console.error("[Timeline] Delete failed:", error);
+        }
+    }
+
+    // Save notes with debounce
+    let saveTimeout;
+    function saveNotes(notes) {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            console.log("[Notes] Auto-saving travel notes...");
+            try {
+                const trip = getCurrentTrip();
+                if (trip) {
+                    trip.notes = notes;
+                    // Save without re-rendering to keep focus
+                    const trips = getTrips();
+                    const idx = trips.findIndex(x => x.id === currentTripId);
+                    if (idx !== -1) {
+                        trips[idx] = trip;
+                        localStorage.setItem('fw-managed-trips', JSON.stringify(trips));
+                    }
+                }
+            } catch (error) {
+                console.error("[Notes] Auto-save failed:", error);
+            }
+        }, 300);
+    }
+
+    // Add Photo Link
+    function handleAddPhoto(e) {
+        e.preventDefault();
+        console.log("[Photo] Form submitted");
+
+        const form = e.target;
+        const submitBtn = form.querySelector("button[type='submit']");
+
+        console.log("[Photo] Setting loading state");
+        setButtonLoading(submitBtn, true, 'Adding...');
+
+        try {
+            const trip = getCurrentTrip();
+            if (!trip) {
+                throw new Error("Active trip could not be resolved from local storage.");
+            }
+
+            const url = document.getElementById('photo-url').value.trim();
+            const caption = document.getElementById('photo-caption').value.trim() || 'Trip snap';
+            console.log(`[Photo] Validating item: url='${url}', caption='${caption}'`);
+
+            if (!url) {
+                throw new Error("Image URL is required.");
+            }
+
+            trip.photos.push({
+                id: 'photo-' + Math.random().toString(36).substr(2, 9),
+                url: url,
+                caption: caption
+            });
+
+            saveCurrentTrip(trip);
+            console.log("[Photo] Photo snap added successfully");
+
+            document.getElementById('photo-url').value = '';
+            document.getElementById('photo-caption').value = '';
+            showToast("Photo added to gallery!", "success");
+        } catch (error) {
+            console.error("[Photo] Exception caught:", error);
+            showToast(error.message, "error");
+        } finally {
+            console.log("[Photo] Resetting loading state");
+            setButtonLoading(submitBtn, false);
+        }
+    }
+
+    // Delete Photo
+    function deletePhoto(photoId) {
+        console.log(`[Photo] Delete requested for ID: ${photoId}`);
+        try {
+            const trip = getCurrentTrip();
+            if (trip) {
+                trip.photos = trip.photos.filter(x => x.id !== photoId);
+                saveCurrentTrip(trip);
+                showToast("Photo removed from gallery.", "info");
+            }
+        } catch (error) {
+            console.error("[Photo] Delete failed:", error);
+        }
+    }
+
+    // Render stars representation
+    function updateRatingStarsUI(rating) {
+        for (let i = 1; i <= 5; i++) {
+            const star = document.getElementById(`star-${i}`);
+            if (star) {
+                if (i <= rating) {
+                    star.className = "text-amber-500 hover:scale-110 transition-all";
+                } else {
+                    star.className = "text-gray-300 dark:text-gray-600 hover:scale-110 transition-all";
+                }
+            }
+        }
+    }
+
+    // Master Workspace Render function
+    function renderTripWorkspace() {
+        const trip = getCurrentTrip();
+        if (!trip) {
+            alert("Trip record could not be loaded.");
+            window.location.href = "{{ url_for('trip_planner') }}";
+            return;
+        }
+
+        // Header info
+        document.getElementById('trip-title').innerText = trip.name;
+        document.getElementById('trip-dest').innerHTML = `<i class="fa-solid fa-location-dot text-primary"></i> ${trip.destination}`;
+        document.getElementById('trip-date-range').innerText = `${trip.start_date}   →   ${trip.end_date}`;
+        
+        const badge = document.getElementById('trip-category-badge');
+        badge.innerText = trip.category;
+
+        // Status Select
+        document.getElementById('trip-status-select').value = trip.status;
+
+        // Show/Hide Rating for Completed Trips
+        const ratingBox = document.getElementById('trip-rating-container');
+        if (trip.status === 'Completed') {
+            ratingBox.classList.remove('hidden');
+            updateRatingStarsUI(trip.rating);
+        } else {
+            ratingBox.classList.add('hidden');
+        }
+
+        // --- Budget & Expense Tracker ---
+        let totalLimit = 0;
+        let totalSpent = 0;
+        const categories = ["Fuel", "Food", "Lodging", "Others"];
+        const spentByCategory = { Fuel: 0, Food: 0, Lodging: 0, Others: 0 };
+
+        // Categorize expenses
+        trip.expenses.forEach(e => {
+            if (spentByCategory[e.category] !== undefined) {
+                spentByCategory[e.category] += e.amount;
+                totalSpent += e.amount;
+            }
+        });
+
+        // Set inputs limits & calculate total limit
+        categories.forEach(c => {
+            const limit = trip.budget[c] || 0;
+            totalLimit += limit;
+            const input = document.getElementById(`budget-limit-${c}`);
+            if (input) input.value = limit;
+        });
+
+        // Update total header stats
+        document.getElementById('budget-total-spent').innerText = `₹${totalSpent}`;
+        document.getElementById('budget-total-limit').innerText = `₹${totalLimit}`;
+
+        // Render progress category bars
+        const barsContainer = document.getElementById('budget-category-bars');
+        barsContainer.innerHTML = '';
+        categories.forEach(c => {
+            const limit = trip.budget[c] || 0;
+            const spent = spentByCategory[c];
+            const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
+            
+            // Bar color logic
+            const barBgClass = spent > limit ? 'bg-red-500' : 'bg-primary';
+            const limitWarnClass = spent > limit ? 'text-red-500 font-extrabold' : 'text-gray-500';
+
+            const barWrapper = document.createElement('div');
+            barWrapper.innerHTML = `
+                <div class="flex justify-between text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                    <span class="font-bold text-gray-700 dark:text-gray-300">${c} Category</span>
+                    <span class="${limitWarnClass}">₹${spent} spent / ₹${limit} limit (${pct}%)</span>
+                </div>
+                <div class="w-full h-2 bg-gray-150 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full ${barBgClass} rounded-full transition-all" style="width: ${pct}%"></div>
+                </div>
+            `;
+            barsContainer.appendChild(barWrapper);
+        });
+
+        // Populate Expenses list
+        const tbody = document.getElementById('expenses-tbody');
+        tbody.innerHTML = '';
+        if (trip.expenses.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="py-4 text-center text-gray-400 italic">No expenses logged yet. Use the card helper below.</td>
+                </tr>
+            `;
+        } else {
+            trip.expenses.forEach(e => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-50 dark:border-white/[0.02] hover:bg-gray-50/50 dark:hover:bg-white/[0.02]";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-semibold text-gray-400">${e.date}</td>
+                    <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/5 text-[9px] font-bold text-gray-600 dark:text-gray-400">${e.category}</span></td>
+                    <td class="py-2.5 px-3 font-bold text-gray-800 dark:text-white">${e.description}</td>
+                    <td class="py-2.5 px-3 text-right font-extrabold text-primary">₹${e.amount}</td>
+                    <td class="py-2.5 px-3 text-center">
+                        <button onclick="deleteExpense('${e.id}')" class="p-1 text-gray-400 hover:text-red-500 transition-all">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Checklist ---
+        const chkContainer = document.getElementById('checklist-container');
+        chkContainer.innerHTML = '';
+        
+        const chkTotal = trip.checklist.length;
+        const chkDone = trip.checklist.filter(x => x.checked).length;
+        document.getElementById('checklist-progress-text').innerText = `${chkDone}/${chkTotal} Checked`;
+
+        if (chkTotal === 0) {
+            chkContainer.innerHTML = `<div class="py-4 text-center text-gray-400 text-xs italic">Pack checklist empty. Add items above.</div>`;
+        } else {
+            trip.checklist.forEach(c => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "flex items-center justify-between p-3 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-xl";
+                itemDiv.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${c.checked ? 'checked' : ''} onchange="toggleChecklistItem('${c.id}', this.checked)" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
+                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 ${c.checked ? 'line-through text-gray-400 dark:text-gray-500' : ''}">${c.item}</span>
+                    </div>
+                    <button onclick="deleteChecklistItem('${c.id}')" class="text-gray-400 hover:text-red-500 transition-all p-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                chkContainer.appendChild(itemDiv);
+            });
+        }
+
+        // --- Timeline ---
+        const tlContainer = document.getElementById('timeline-container');
+        tlContainer.innerHTML = '';
+
+        const tlTotal = trip.timeline.length;
+        const tlDone = trip.timeline.filter(x => x.completed).length;
+        document.getElementById('timeline-progress-text').innerText = `${tlDone}/${tlTotal} Checkpoints`;
+
+        if (tlTotal === 0) {
+            tlContainer.innerHTML = `<div class="py-4 text-center text-gray-400 text-xs italic">Itinerary list empty. Add checkpoints.</div>`;
+        } else {
+            trip.timeline.forEach(t => {
+                const tlNode = document.createElement('div');
+                tlNode.className = "relative mb-6 last:mb-0";
+                
+                // Bullet status
+                const bulletBg = t.completed ? 'bg-secondary' : 'bg-gray-300 dark:bg-gray-700';
+
+                tlNode.innerHTML = `
+                    <!-- Timeline circle bullet node -->
+                    <span class="absolute -left-[21px] top-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full ${bulletBg} ring-4 ring-white dark:ring-dark"></span>
+                    
+                    <div class="flex items-start justify-between p-3.5 bg-gray-50 dark:bg-white/[0.01] border border-gray-100 dark:border-white/5 rounded-xl hover:border-secondary/25 transition-all">
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTimelineItem('${t.id}', this.checked)" class="w-4 h-4 mt-0.5 text-secondary border-gray-300 rounded focus:ring-secondary focus:ring-2">
+                            <div>
+                                <span class="block text-[10px] font-bold text-secondary uppercase tracking-wider">${t.time}</span>
+                                <span class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mt-0.5 ${t.completed ? 'line-through text-gray-400 dark:text-gray-500' : ''}">${t.activity}</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteTimelineItem('${t.id}')" class="text-gray-400 hover:text-red-500 transition-all p-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                tlContainer.appendChild(tlNode);
+            });
+        }
+
+        // --- Notes ---
+        document.getElementById('trip-notes').value = trip.notes || "";
+
+        // --- Photos ---
+        const photosGrid = document.getElementById('photos-grid');
+        photosGrid.innerHTML = '';
+        if (trip.photos.length === 0) {
+            photosGrid.className = "py-4 text-center text-gray-400 text-xs italic";
+            photosGrid.innerHTML = "No snaps in this gallery yet. Log snap URLs below.";
+        } else {
+            photosGrid.className = "grid grid-cols-2 gap-3";
+            trip.photos.forEach(p => {
+                const photoCard = document.createElement('div');
+                photoCard.className = "group relative rounded-xl overflow-hidden border border-gray-150 dark:border-white/5 h-28 bg-gray-100 dark:bg-white/5";
+                photoCard.innerHTML = `
+                    <img src="${p.url}" alt="${p.caption}" class="w-full h-full object-cover transition-all group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=150&q=80'">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end p-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all">
+                        <span class="block text-[8px] font-bold text-white truncate">${p.caption}</span>
+                        <button onclick="deletePhoto('${p.id}')" class="absolute top-2 right-2 text-white/70 hover:text-red-500 p-1 bg-black/40 hover:bg-black/60 rounded transition-all">
+                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                photosGrid.appendChild(photoCard);
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderTripWorkspace();
+    });
+</script>
+{% endblock content %}

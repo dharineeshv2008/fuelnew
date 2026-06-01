@@ -16,14 +16,14 @@
     <!-- Premium Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 px-2">
         <!-- Card 1: Total Spent -->
-        <div class="fw-card hover:shadow-lg transition-all">
-            <div class="flex items-center justify-between mb-4">
+        <div class="fw-card fw-stat-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-3">
                 <span class="text-caption">Total Spent</span>
                 <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-lg">
                     <i class="fa-solid fa-wallet"></i>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ format_currency(total_spent) }}</h2>
+            <h2 class="text-2xl font-bold tracking-tight mb-2">{{ format_currency(total_spent) }}</h2>
             <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
                 <span class="text-success flex items-center"><i class="fa-solid fa-arrow-trend-up mr-0.5"></i> Refuel Ledger</span>
                 <span>telemetry synced</span>
@@ -31,30 +31,30 @@
         </div>
 
         <!-- Card 2: Total Distance -->
-        <div class="fw-card hover:shadow-lg transition-all">
-            <div class="flex items-center justify-between mb-4">
+        <div class="fw-card fw-stat-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-3">
                 <span class="text-caption">Total Distance</span>
                 <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 text-lg">
                     <i class="fa-solid fa-route"></i>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ total_distance|round|int }} <span class="text-base font-semibold text-gray-400">KM</span></h2>
+            <h2 class="text-2xl font-bold tracking-tight mb-2">{{ total_distance|round|int }} <span class="text-base font-semibold text-gray-400">KM</span></h2>
             <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
                 <span class="text-success flex items-center"><i class="fa-solid fa-chart-line mr-0.5"></i> Trip Planner</span>
                 <span>metrics integrated</span>
             </div>
         </div>
 
-        <!-- Card 3: Fuel Processed -->
-        <div class="fw-card hover:shadow-lg transition-all">
-            <div class="flex items-center justify-between mb-4">
+        <!-- Card 3: Avg Cost/KM -->
+        <div class="fw-card fw-stat-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-3">
                 <span class="text-caption">Average Cost/KM</span>
                 <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 text-lg">
                     <i class="fa-solid fa-gas-pump"></i>
                 </div>
             </div>
             {% set avg_cost = (total_spent / total_distance) if total_distance > 0 else 0 %}
-            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ format_currency(avg_cost) }}</h2>
+            <h2 class="text-2xl font-bold tracking-tight mb-2">{{ format_currency(avg_cost) }}</h2>
             <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
                 <span class="text-amber-500 flex items-center"><i class="fa-solid fa-gauge-high mr-0.5"></i> Active Unit</span>
                 <span>efficiency index</span>
@@ -62,14 +62,14 @@
         </div>
 
         <!-- Card 4: Managed Fleet -->
-        <div class="fw-card hover:shadow-lg transition-all">
-            <div class="flex items-center justify-between mb-4">
+        <div class="fw-card fw-stat-card hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-3">
                 <span class="text-caption">Managed Fleet</span>
                 <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-lg">
                     <i class="fa-solid fa-car-side"></i>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold tracking-tight mb-2">{{ vehicle_count }} <span class="text-base font-semibold text-gray-400">Vehicles</span></h2>
+            <h2 class="text-2xl font-bold tracking-tight mb-2">{{ vehicle_count }} <span class="text-base font-semibold text-gray-400">Vehicles</span></h2>
             <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
                 <span class="text-primary flex items-center"><i class="fa-solid fa-shield mr-0.5"></i> Active Fleet</span>
                 <span>profiles loaded</span>

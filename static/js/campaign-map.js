@@ -212,17 +212,19 @@ window.updateTourScheduleTimeline = function(days) {
 window.switchFuelType = function(type) {
     window.currentFuelType = type;
     
+    // Update tab active state using the .fw-tab CSS system
     ['Petrol', 'Diesel', 'Electric', 'CNG'].forEach(t => {
         const btn = document.getElementById('fuelTab' + t);
         if (btn) {
             if (t === type) {
-                btn.className = "flex-1 py-1 rounded-lg text-center transition-all bg-primary text-white";
+                btn.classList.add('active');
             } else {
-                btn.className = "flex-1 py-1 rounded-lg text-center transition-all text-gray-400 hover:text-white";
+                btn.classList.remove('active');
             }
         }
     });
     
+    // Show/hide param panels
     ['Petrol', 'Diesel', 'Electric', 'CNG'].forEach(t => {
         const el = document.getElementById('params' + t);
         if (el) {

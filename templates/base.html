@@ -39,6 +39,11 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
+
+    <script>
+        window.FIREBASE_ENABLED = false;
+    </script>
+
     {% block head %}{% endblock %}
 </head>
 <body class="transition-colors duration-300">
@@ -410,7 +415,8 @@
             // Button Loading States
             const forms = document.querySelectorAll("form");
             forms.forEach(f => {
-                f.addEventListener("submit", () => {
+                f.addEventListener("submit", (e) => {
+                    if (e.defaultPrevented) return;
                     const btns = f.querySelectorAll("button[type='submit']");
                     btns.forEach(b => {
                         if (!b.hasAttribute('data-no-disable')) {
