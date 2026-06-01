@@ -304,6 +304,124 @@ window.toggleAccordion = function(id) {
     }
 };
 
+window.isDistrictSelected = function(distId) {
+    const cb = document.querySelector(`.dist-check[value="${distId}"]`);
+    return cb ? cb.checked : false;
+};
+
+window.toggleDistrictSelection = function(distId) {
+    console.log(`[Campaign Map] Marker click -> Toggling selection for District: ${distId}`);
+    const cb = document.querySelector(`.dist-check[value="${distId}"]`);
+    if (cb) {
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+        window.updateDistrictMarkerStyle(distId);
+    }
+};
+
+window.updateDistrictMarkerStyle = function(distId) {
+    const marker = districtMarkers[distId];
+    if (!marker) return;
+    
+    if (window.isDistrictSelected(distId)) {
+        marker.setStyle({
+            radius: 8,
+            fillColor: '#F1C40F', // Golden amber highlight
+            color: '#FFD700',
+            weight: 3,
+            fillOpacity: 1.0
+        });
+    } else {
+        marker.setStyle({
+            radius: 5,
+            fillColor: '#000000',
+            color: '#18A06A',
+            weight: 1.5,
+            fillOpacity: 0.9
+        });
+    }
+};
+
+window.isConstituencySelected = function(constId) {
+    const cb = document.querySelector(`.const-check[value="${constId}"]`);
+    return cb ? cb.checked : false;
+};
+
+window.toggleConstituencySelection = function(constId) {
+    console.log(`[Campaign Map] Marker click -> Toggling selection for Constituency: ${constId}`);
+    const cb = document.querySelector(`.const-check[value="${constId}"]`);
+    if (cb) {
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+        
+        if (cb.checked) {
+            const distId = cb.dataset.districtId;
+            const contentDiv = document.getElementById('content-' + distId);
+            const icon = document.getElementById('icon-' + distId);
+            if (contentDiv && contentDiv.classList.contains('hidden')) {
+                contentDiv.classList.remove('hidden');
+                if (icon) icon.style.transform = 'rotate(90deg)';
+            }
+        }
+        window.updateConstituencyMarkerStyle(constId);
+    }
+};
+
+window.updateConstituencyMarkerStyle = function(constId) {
+    const marker = constituencyMarkers[constId];
+    const poly = constituencyPolygons[constId];
+    
+    const isSel = window.isConstituencySelected(constId);
+    if (marker) {
+        if (isSel) {
+            marker.setStyle({
+                radius: 6,
+                fillColor: '#F1C40F', // Golden amber highlight
+                color: '#FFD700',
+                weight: 2,
+                fillOpacity: 1.0
+            });
+        } else {
+            marker.setStyle({
+                radius: 3.5,
+                fillColor: '#2ECC71',
+                color: '#FFFFFF',
+                weight: 1,
+                fillOpacity: 0.65
+            });
+        }
+    }
+    if (poly) {
+        if (isSel) {
+            poly.setStyle({
+                color: '#FFD700',
+                fillColor: '#F1C40F',
+                weight: 2.5,
+                fillOpacity: 0.35,
+                opacity: 0.95
+            });
+        } else {
+            poly.setStyle({
+                color: '#18A06A',
+                fillColor: '#0F7B53',
+                weight: 1,
+                fillOpacity: 0.05,
+                opacity: 0.25
+            });
+        }
+    }
+};
+
+window.syncMarkerStylesWithCheckboxes = function() {
+    console.log("[Campaign Map] Syncing marker styles with selection checkboxes");
+    window.allDistricts.forEach(d => {
+        window.updateDistrictMarkerStyle(d.id);
+    });
+    window.allConstituencies.forEach(c => {
+        window.updateConstituencyMarkerStyle(c.id);
+    });
+};
+
 window.selectDistrictConsts = function(id, checked) {
     const content = document.getElementById('content-' + id);
     if (!content) return;
@@ -335,6 +453,9 @@ window.updateCount = function(changedCb) {
         btn.disabled = totalSelected === 0;
     });
     
+    // Sync marker styles with new checked states
+    window.syncMarkerStylesWithCheckboxes();
+    
     window.updateLivePreview(totalSelected, uniqueDistricts.size, changedCb);
 };
 
@@ -351,6 +472,9 @@ window.updateDistCount = function(changedCb) {
     submitBtns.forEach(btn => {
         btn.disabled = totalSelected === 0;
     });
+    
+    // Sync marker styles with new checked states
+    window.syncMarkerStylesWithCheckboxes();
     
     window.updateLivePreview(totalSelected, totalSelected, changedCb);
 };
@@ -1016,7 +1140,27 @@ window.initCampaignMap = async function() {
             districtMarkers[d.id] = marker;
             districtBoundsCircles[d.id] = circle;
             
-            marker.on('click', () => { activateDistrictGIS(d.id); });
+            // Hover effect for discoverability
+            marker.on('mouseover', function() {
+                if (!window.isDistrictSelected(d.id)) {
+                    marker.setStyle({ radius: 7.5, color: '#2ECC71', weight: 2.5, fillOpacity: 0.95 });
+                }
+            });
+            marker.on('mouseout', function() {
+                if (!window.isDistrictSelected(d.id)) {
+                    marker.setStyle({ radius: 5, fillColor: '#000000', color: '#18A06A', weight: 1.5, fillOpacity: 0.9 });
+                }
+            });
+            
+            // Click handler: Activate GIS & Toggle selection if in District mode
+            marker.on('click', (e) => {
+                L.DomEvent.stopPropagation(e);
+                activateDistrictGIS(d.id);
+                const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
+                if (isDistrictMode) {
+                    window.toggleDistrictSelection(d.id);
+                }
+            });
         });
         map.addLayer(mapLayers.districts);
         
@@ -1046,6 +1190,48 @@ window.initCampaignMap = async function() {
             marker.bindPopup(popupText);
             poly.bindTooltip(`${c.name} constituency`, { sticky: true });
             
+            // Store references
+            constituencyMarkers[c.id] = marker;
+            constituencyPolygons[c.id] = poly;
+
+            // Hover effects & click toggles for constituency marker
+            marker.on('mouseover', function() {
+                if (!window.isConstituencySelected(c.id)) {
+                    marker.setStyle({ radius: 5.5, fillColor: '#18A06A', weight: 2 });
+                }
+            });
+            marker.on('mouseout', function() {
+                if (!window.isConstituencySelected(c.id)) {
+                    marker.setStyle({ radius: 3.5, fillColor: '#2ECC71', color: '#FFFFFF', weight: 1, fillOpacity: 0.65 });
+                }
+            });
+            marker.on('click', (e) => {
+                L.DomEvent.stopPropagation(e);
+                const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
+                if (!isDistrictMode) {
+                    window.toggleConstituencySelection(c.id);
+                }
+            });
+
+            // Hover effects & click toggles for constituency polygon
+            poly.on('mouseover', function() {
+                if (!window.isConstituencySelected(c.id)) {
+                    poly.setStyle({ color: '#2ECC71', weight: 2, fillOpacity: 0.15 });
+                }
+            });
+            poly.on('mouseout', function() {
+                if (!window.isConstituencySelected(c.id)) {
+                    poly.setStyle({ color: '#18A06A', weight: 1, fillColor: '#0F7B53', fillOpacity: 0.05, opacity: 0.25 });
+                }
+            });
+            poly.on('click', (e) => {
+                L.DomEvent.stopPropagation(e);
+                const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
+                if (!isDistrictMode) {
+                    window.toggleConstituencySelection(c.id);
+                }
+            });
+            
             const cGroup = L.layerGroup([poly, marker]);
             if (districtGISGroups[c.district_id]) districtGISGroups[c.district_id].addLayer(cGroup);
         });
@@ -1074,6 +1260,7 @@ window.initCampaignMap = async function() {
             updateMapSelections(false);
         }
         
+        window.syncMarkerStylesWithCheckboxes();
         updateViewportRendering();
     }).catch(e => {
         console.error("Background static GIS load failed in Campaign", e);

@@ -110,27 +110,77 @@ def find_distance(origin, dest, matrix):
     return d if d is not None else None
 
 def optimize_route(stops, matrix):
-    """Nearest neighbor TSP approximation for route optimization"""
-    if len(stops) <= 2:
-        return stops
-    start = stops[0]
-    end = stops[-1]
-    middle = list(stops[1:-1])
-    if not middle:
-        return stops
-    route = [start]
-    unvisited = middle[:]
-    current = start
-    while unvisited:
-        def dist_to(x):
-            d = matrix.get(current, {}).get(x) or matrix.get(x, {}).get(current)
-            return d if d is not None else 99999
-        best = min(unvisited, key=dist_to)
-        route.append(best)
-        unvisited.remove(best)
-        current = best
-    route.append(end)
-    return route
+    """
+    Highly optimized TSP solver to minimize travel distance.
+    Uses exact search for small stop counts (<= 8) and multi-start 2-opt for larger counts.
+    """
+    # Remove duplicates
+    unique_stops = []
+    for s in stops:
+        if s not in unique_stops:
+            unique_stops.append(s)
+            
+    if len(unique_stops) <= 2:
+        return unique_stops
+
+    def get_dist(a, b):
+        if a == b:
+            return 0
+        d = matrix.get(a, {}).get(b) or matrix.get(b, {}).get(a)
+        return d if d is not None else 100.0  # default fallback distance
+
+    def route_distance(route):
+        return sum(get_dist(route[i], route[i+1]) for i in range(len(route)-1))
+
+    # Exact search for small counts (<= 8 stops)
+    if len(unique_stops) <= 8:
+        import itertools
+        best_route = unique_stops
+        min_dist = float('inf')
+        # We can fix the first stop to reduce search space to (N-1)!
+        first = unique_stops[0]
+        rest = unique_stops[1:]
+        for perm in itertools.permutations(rest):
+            current_route = [first] + list(perm)
+            d = route_distance(current_route)
+            if d < min_dist:
+                min_dist = d
+                best_route = current_route
+        return best_route
+
+    # Multi-start 2-opt heuristic for larger counts
+    best_overall_route = unique_stops
+    min_overall_dist = float('inf')
+
+    # Try 5 different starting routes (original plus random shuffles)
+    starts = [unique_stops]
+    import random
+    random.seed(42)  # for deterministic behavior
+    for _ in range(4):
+        shuffled = unique_stops[:]
+        random.shuffle(shuffled)
+        starts.append(shuffled)
+
+    for start_route in starts:
+        route = start_route[:]
+        improved = True
+        while improved:
+            improved = False
+            for i in range(1, len(route) - 2):
+                for j in range(i + 1, len(route)):
+                    if j - i == 1: continue
+                    new_route = route[:]
+                    new_route[i:j] = route[j-1:i-1:-1] # reverse the segment
+                    if route_distance(new_route) < route_distance(route):
+                        route = new_route
+                        improved = True
+        
+        d = route_distance(route)
+        if d < min_overall_dist:
+            min_overall_dist = d
+            best_overall_route = route
+
+    return best_overall_route
 
 def calculate_route_plan(stops, matrix, mileage, fuel_price, fuel_type='Petrol'):
     """Calculate full route plan statistics from list of stops"""
