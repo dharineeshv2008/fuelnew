@@ -1,16 +1,19 @@
 import os
 import uuid
+import logging
 from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, session, redirect, url_for, flash, Response, jsonify
 
-# Load environment variables
+# Load environment variables first
 load_dotenv()
 
 from utils import (
     calculate_fuel, plan_trip, get_random_tip, format_currency, safe_float,
     load_data, optimize_route, calculate_route_plan, estimate_days, parse_ai_query, find_distance
 )
+
+logging.basicConfig(level=logging.INFO)
 
 # Resolve absolute paths for Vercel serverless compatibility
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +41,7 @@ def internal_error(e):
 @app.before_request
 def auth_middleware():
     """Ensure user is logged in for protected routes."""
+    # Allow public pages
     public_endpoints = ["login", "register", "static"]
     if not session.get("user") and request.endpoint not in public_endpoints and request.endpoint:
         return redirect(url_for("login"))
@@ -46,6 +50,7 @@ def auth_middleware():
 def inject_globals():
     """Global data for templates."""
     currency = session.get("currency", "₹")
+
     return {
         "theme": session.get("theme", "light"),
         "currency": currency,
@@ -56,10 +61,10 @@ def inject_globals():
         "price_petrol": session.get("price_petrol", 100.0),
         "price_diesel": session.get("price_diesel", 90.0),
         "price_cng": session.get("price_cng", 85.0),
-        "price_ev": session.get("price_ev", 8.0)
+        "price_ev": session.get("price_ev", 8.0),
     }
 
-# --- AUTH ROUTES (DEMO MODE — No Database) ---
+# --- AUTH ROUTES (Session-based) ───────
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -359,30 +364,21 @@ def history():
     vmap = {v["id"]: v for v in vehicles_list}
     return render_template("history.html", trips=trips, logs=logs, vehicles=vehicles_list, vmap=vmap)
 
-@app.route("/trip", methods=["GET", "POST"])
+@app.route("/trip")
 def trip_planner():
     store = _get_demo_store()
     vehicles = store.get("demo_vehicles", [])
-    result = None
-    form_data = request.form.to_dict() if request.method == "POST" else {}
+    return render_template("trip.html", vehicles=vehicles)
 
-    if request.method == "POST":
-        try:
-            dist = safe_float(request.form.get("total_dist"))
-            mileage = safe_float(request.form.get("mileage"))
-            price = safe_float(request.form.get("fuel_price"))
-            tank = safe_float(request.form.get("tank_size", 45))
-            speed = safe_float(request.form.get("speed", 60))
+@app.route("/trip/view/<trip_id>")
+def trip_details(trip_id):
+    store = _get_demo_store()
+    vehicles = store.get("demo_vehicles", [])
+    return render_template("trip_details.html", trip_id=trip_id, vehicles=vehicles)
 
-            if dist <= 0 or mileage <= 0 or price <= 0:
-                flash("Please provide positive values for Distance, Mileage, and Price.", "error")
-            else:
-                result = plan_trip(dist, mileage, price, tank, speed)
-                flash("Trip planned!", "success")
-        except Exception as e:
-            flash(f"Trip Planner Error: {str(e)}", "error")
-
-    return render_template("trip.html", vehicles=vehicles, result=result, form=form_data)
+@app.route("/trip/export/<trip_id>")
+def trip_export(trip_id):
+    return render_template("trip_report.html", trip_id=trip_id)
 
 @app.route("/settings", methods=["GET", "POST"])
 def settings():

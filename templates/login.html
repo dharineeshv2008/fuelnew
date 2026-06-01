@@ -15,6 +15,7 @@
     
     <!-- Premium Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth_premium.css') }}">
+    <script>window.FIREBASE_ENABLED = false;</script>
     
     <script>
         // Init theme immediately to prevent flashing
@@ -182,7 +183,7 @@
                             <input type="checkbox" id="remember" name="remember">
                             <label for="remember">Remember me</label>
                         </div>
-                        <a href="#" class="forgot-link" onclick="event.preventDefault(); alert('Demo environment: Simply login with any credentials.');">Forgot Password?</a>
+                        <a href="#" class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
                     </div>
 
                     <!-- Continue / Sign In Button -->
@@ -225,19 +226,78 @@
         {% endfor %}
         {% endif %}
         {% endwith %}
-    </div>
+      <script>
+        // Inline Premium UI Helpers
+        function setButtonLoading(btn, loading, loadingText = 'Please wait...') {
+            if (!btn) return;
+            if (loading) {
+                btn._originalHTML = btn.innerHTML;
+                btn.disabled      = true;
+                btn.innerHTML = `
+                    <span style="display:inline-flex;align-items:center;gap:8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:fw-spin 0.8s linear infinite;color:currentColor;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20" stroke-linecap="round"/>
+                        </svg>
+                        ${loadingText}
+                    </span>
+                `;
+            } else {
+                btn.disabled  = false;
+                btn.innerHTML = btn._originalHTML || btn.innerHTML;
+                delete btn._originalHTML;
+            }
+            if (!document.getElementById('fw-spin-style')) {
+                const style  = document.createElement('style');
+                style.id     = 'fw-spin-style';
+                style.textContent = '@keyframes fw-spin { to { transform: rotate(360deg); } }';
+                document.head.appendChild(style);
+            }
+        }
 
-    <script>
+        function showFieldError(inputEl, message) {
+            if (!inputEl) return;
+            clearFieldError(inputEl);
+            inputEl.style.borderColor = '#ef4444';
+            inputEl.style.boxShadow   = '0 0 0 2px rgba(239,68,68,0.2)';
+
+            const errEl         = document.createElement('p');
+            errEl.className     = 'fw-field-error';
+            errEl.style.cssText = 'color:#ef4444;font-size:11px;font-weight:600;margin-top:4px;margin-bottom:0;';
+            errEl.textContent   = message;
+
+            const parent = inputEl.closest('.form-group') || inputEl.parentElement;
+            parent.appendChild(errEl);
+        }
+
+        function clearFieldError(inputEl) {
+            if (!inputEl) return;
+            inputEl.style.borderColor = '';
+            inputEl.style.boxShadow   = '';
+            const parent = inputEl.closest('.form-group') || inputEl.parentElement;
+            parent.querySelectorAll('.fw-field-error').forEach(e => e.remove());
+        }
+
+        function clearFieldErrors(formEl) {
+            if (!formEl) return;
+            formEl.querySelectorAll('.fw-field-error').forEach(e => e.remove());
+            formEl.querySelectorAll('input, select, textarea').forEach(el => {
+                el.style.borderColor = '';
+                el.style.boxShadow   = '';
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('authForm');
-            const passInput = document.getElementById('password');
-            const submitBtn = document.getElementById('submitBtn');
-            const toggleBtn = document.getElementById('togglePassword');
-            const eyeIcon = document.getElementById('eyeIcon');
+            const form        = document.getElementById('authForm');
+            const emailInput  = document.getElementById('email');
+            const passInput   = document.getElementById('password');
+            const submitBtn   = document.getElementById('submitBtn');
+            const toggleBtn   = document.getElementById('togglePassword');
+            const eyeIcon     = document.getElementById('eyeIcon');
             const themeToggle = document.getElementById('themeToggle');
-            const toasts = document.querySelectorAll('.toast');
+            const forgotLink  = document.getElementById('forgotPasswordLink');
+            const toasts      = document.querySelectorAll('.toast');
 
-            // Hide toasts after delay
+            // Hide server-rendered toasts after delay
             toasts.forEach(toast => {
                 setTimeout(() => {
                     toast.classList.remove('show');
@@ -245,7 +305,7 @@
                 }, 4000);
             });
 
-            // Password Toggle Visibility
+            // Password toggle
             toggleBtn.addEventListener('click', () => {
                 const isPassword = passInput.getAttribute('type') === 'password';
                 passInput.setAttribute('type', isPassword ? 'text' : 'password');
@@ -253,21 +313,7 @@
                 eyeIcon.classList.toggle('fa-eye-slash', isPassword);
             });
 
-            // Form Submit Loading spinner toggle
-            form.addEventListener('submit', (e) => {
-                const btnText = submitBtn.querySelector('.btn-text');
-                const btnIcon = submitBtn.querySelector('i');
-                const spinner = submitBtn.querySelector('.spinner');
-
-                if (btnText && btnIcon && spinner) {
-                    btnText.style.display = 'none';
-                    btnIcon.style.display = 'none';
-                    spinner.style.display = 'block';
-                    setTimeout(() => { submitBtn.disabled = true; }, 10);
-                }
-            });
-
-            // Theme Toggle click handler
+            // Theme toggle
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
                     const isDark = document.documentElement.classList.toggle('dark');
@@ -276,6 +322,36 @@
                     localStorage.setItem('fw-theme', newTheme);
                 });
             }
+
+            // ── Forgot Password ───────────────────────────────────────────────
+            if (forgotLink) {
+                forgotLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('Demo Mode: Enter any email & password to sign in.');
+                });
+            }
+
+            // ── Form Submit ───────────────────────────────────────────────────
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                clearFieldErrors(form);
+
+                const email    = emailInput.value.trim();
+                const password = passInput.value;
+
+                // Client-side validation
+                if (!email) {
+                    showFieldError(emailInput, 'Email is required.');
+                    return;
+                }
+                if (!password) {
+                    showFieldError(passInput, 'Password is required.');
+                    return;
+                }
+
+                setButtonLoading(submitBtn, true, 'Signing in...');
+                form.submit();
+            });
         });
     </script>
 </body>

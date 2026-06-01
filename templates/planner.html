@@ -2,6 +2,122 @@
 
 {% block head %}
 <style>
+    /* ── Advanced Settings Accordion fix ──────────────────────────────────────
+       The parent .mobile-collapsible-card sets pointer-events:none on desktop
+       for all children. We must re-enable it for the advanced-settings block
+       and every interactive element inside it. */
+    .advanced-settings-wrap,
+    .advanced-settings-wrap * {
+        pointer-events: auto !important;
+        cursor: auto;
+    }
+    .advanced-settings-wrap button,
+    .advanced-settings-wrap label,
+    .advanced-settings-wrap select,
+    .advanced-settings-wrap input {
+        cursor: pointer !important;
+    }
+
+    /* Accordion header */
+    #advSettingsBtn {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        color: inherit;
+        cursor: pointer !important;
+        user-select: none;
+        pointer-events: auto !important;
+    }
+    #advSettingsBtn:focus-visible {
+        outline: 2px solid var(--brand-primary, #0F7B53);
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+
+    /* Chevron rotation */
+    #advChevron {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-block;
+        font-size: 10px;
+        color: #6b7280;
+    }
+    #advChevron.open {
+        transform: rotate(180deg);
+    }
+
+    /* Panel slide animation via max-height */
+    #advSettingsPanel {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity   0.28s ease,
+                    padding   0.28s ease;
+        opacity: 0;
+        padding-top: 0;
+    }
+    #advSettingsPanel.open {
+        max-height: 700px; /* large enough to fit all content */
+        opacity: 1;
+        padding-top: 1rem; /* 16px */
+    }
+
+    /* Route option checkboxes */
+    .adv-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgba(15,123,83,0.04);
+        border: 1px solid rgba(15,123,83,0.12);
+        transition: background 0.18s, border-color 0.18s;
+    }
+    .adv-option:hover {
+        background: rgba(15,123,83,0.09);
+        border-color: rgba(15,123,83,0.25);
+    }
+    .adv-option input[type="checkbox"] {
+        accent-color: #0F7B53;
+        width: 15px;
+        height: 15px;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+    .adv-option-label {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .adv-option-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-primary, #111);
+    }
+    .adv-option-desc {
+        font-size: 0.65rem;
+        color: var(--text-muted, #6b7280);
+        font-weight: 500;
+    }
+
+    /* Speed slider */
+    .adv-slider-row {
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgba(15,123,83,0.04);
+        border: 1px solid rgba(15,123,83,0.12);
+    }
+    .adv-slider-row input[type="range"] {
+        width: 100%;
+        accent-color: #0F7B53;
+        height: 4px;
+        cursor: pointer !important;
+    }
+
     /* Custom Leaflet Map styling */
     #plannerMap {
         width: 100%;
@@ -358,86 +474,150 @@
                             </select>
                         </div>
 
-                        <!-- Progressive Disclosure: Advanced settings collapsed by default -->
-                        <details class="group bg-primary/5 border border-primary/10 rounded-xl p-3">
-                            <summary class="flex justify-between items-center font-bold text-xs cursor-pointer select-none text-primary">
-                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> Advanced Settings</span>
-                                <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180 text-[10px]"></i>
-                            </summary>
-                            <div class="mt-4 space-y-4">
-                                <!-- Dynamic Stops -->
-                                <div id="stopsContainer" class="space-y-3">
-                                    {% if form.get('stops') %}
-                                    {% for stop in form.get('stops', []) %}
-                                    <div class="stop-row flex gap-2 items-start">
-                                        <div class="flex-1">
-                                            <label class="fw-label"><i class="fa-solid fa-location-dot text-secondary mr-1"></i> Stop</label>
-                                            <select name="stops[]" class="fw-input">
-                                                <option value="">-- Optional Stop --</option>
-                                                {% for city in cities %}
-                                                <option value="{{ city }}" {% if stop == city %}selected{% endif %}>{{ city }}</option>
+                        <!-- Advanced Settings Accordion (fully JS-driven, works desktop + mobile) -->
+                        <div class="advanced-settings-wrap bg-primary/5 border border-primary/10 rounded-xl p-3">
+                            <!-- Accordion Toggle Button -->
+                            <button
+                                type="button"
+                                id="advSettingsBtn"
+                                aria-expanded="false"
+                                aria-controls="advSettingsPanel"
+                            >
+                                <span class="flex items-center gap-1.5 font-bold text-xs text-primary">
+                                    <i class="fa-solid fa-sliders"></i>
+                                    Advanced Settings
+                                </span>
+                                <i class="fa-solid fa-chevron-down" id="advChevron"></i>
+                            </button>
+
+                            <!-- Collapsible Panel -->
+                            <div id="advSettingsPanel" role="region" aria-labelledby="advSettingsBtn">
+                                <div class="space-y-4">
+
+                                    <!-- Dynamic Stops -->
+                                    <div id="stopsContainer" class="space-y-3">
+                                        {% if form.get('stops') %}
+                                        {% for stop in form.get('stops', []) %}
+                                        <div class="stop-row flex gap-2 items-start">
+                                            <div class="flex-1">
+                                                <label class="fw-label"><i class="fa-solid fa-location-dot text-secondary mr-1"></i> Stop</label>
+                                                <select name="stops[]" class="fw-input">
+                                                    <option value="">-- Optional Stop --</option>
+                                                    {% for city in cities %}
+                                                    <option value="{{ city }}" {% if stop == city %}selected{% endif %}>{{ city }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <button type="button" onclick="removeStop(this)" class="mt-7 fw-btn fw-btn-outline px-3" style="height:48px;">
+                                                <i class="fa-solid fa-minus text-danger"></i>
+                                            </button>
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <button type="button" onclick="addStop()" class="fw-btn fw-btn-outline w-full text-xs">
+                                        <i class="fa-solid fa-plus mr-1 text-primary"></i> Add Stop
+                                    </button>
+
+                                    <!-- Vehicle Params -->
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="fw-label">Vehicle (Optional)</label>
+                                            <select name="vehicle_id" class="fw-input" onchange="autoFillVehicle(this)">
+                                                <option value="">Manual Entry</option>
+                                                {% for v in vehicles %}
+                                                <option value="{{ v.id }}" {% if form.get('vehicle_id') == v.id or (not form.get('vehicle_id') and active_vehicle_id and active_vehicle_id == v.id) %}selected{% endif %}>
+                                                    {{ v.vehicle_name }}
+                                                </option>
                                                 {% endfor %}
                                             </select>
                                         </div>
-                                        <button type="button" onclick="removeStop(this)" class="mt-7 fw-btn fw-btn-outline px-3" style="height:48px;">
-                                            <i class="fa-solid fa-minus text-danger"></i>
-                                        </button>
+                                        <div>
+                                            <label class="fw-label">Fuel Type</label>
+                                            <select name="fuel_type" id="fuelType" class="fw-input">
+                                                <option value="Petrol" {% if form.get('fuel_type','Petrol')=='Petrol' %}selected{% endif %}>Petrol</option>
+                                                <option value="Diesel" {% if form.get('fuel_type')=='Diesel' %}selected{% endif %}>Diesel</option>
+                                                <option value="EV" {% if form.get('fuel_type')=='EV' %}selected{% endif %}>Electric</option>
+                                                <option value="CNG" {% if form.get('fuel_type')=='CNG' %}selected{% endif %}>CNG</option>
+                                                <option value="Hybrid" {% if form.get('fuel_type')=='Hybrid' %}selected{% endif %}>Hybrid</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    {% endfor %}
-                                    {% endif %}
-                                </div>
 
-                                <button type="button" onclick="addStop()" class="fw-btn fw-btn-outline w-full text-xs">
-                                    <i class="fa-solid fa-plus mr-1 text-primary"></i> Add Stop
-                                </button>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="fw-label" id="mileageLabel">Mileage (km/L)</label>
+                                            <input type="number" name="mileage" id="mileageInput" value="{{ form.get('mileage', 15) }}" step="0.1" class="fw-input" required>
+                                        </div>
+                                        <div>
+                                            <label class="fw-label" id="priceLabel">Fuel Price (/L)</label>
+                                            <input type="number" name="fuel_price" id="fuelPriceInput" value="{{ form.get('fuel_price', session.get('price_petrol', 102)) }}" step="0.01" class="fw-input" required>
+                                        </div>
+                                    </div>
 
-                                <!-- Vehicle Params -->
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="fw-label">Vehicle (Optional)</label>
-                                        <select name="vehicle_id" class="fw-input" onchange="autoFillVehicle(this)">
-                                            <option value="">Manual Entry</option>
-                                            {% for v in vehicles %}
-                                            <option value="{{ v.id }}" {% if form.get('vehicle_id') == v.id or (not form.get('vehicle_id') and active_vehicle_id and active_vehicle_id == v.id) %}selected{% endif %}>
-                                                {{ v.vehicle_name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="fw-label">Fuel Type</label>
-                                        <select name="fuel_type" id="fuelType" class="fw-input">
-                                            <option value="Petrol" {% if form.get('fuel_type','Petrol')=='Petrol' %}selected{% endif %}>Petrol</option>
-                                            <option value="Diesel" {% if form.get('fuel_type')=='Diesel' %}selected{% endif %}>Diesel</option>
-                                            <option value="EV" {% if form.get('fuel_type')=='EV' %}selected{% endif %}>Electric</option>
-                                            <option value="CNG" {% if form.get('fuel_type')=='CNG' %}selected{% endif %}>CNG</option>
-                                            <option value="Hybrid" {% if form.get('fuel_type')=='Hybrid' %}selected{% endif %}>Hybrid</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                    <!-- ── New route option checkboxes ──────────── -->
+                                    <div class="space-y-2">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Route Preferences</p>
 
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="fw-label" id="mileageLabel">Mileage (km/L)</label>
-                                        <input type="number" name="mileage" id="mileageInput" value="{{ form.get('mileage', 15) }}" step="0.1" class="fw-input" required>
-                                    </div>
-                                    <div>
-                                        <label class="fw-label" id="priceLabel">Fuel Price (/L)</label>
-                                        <input type="number" name="fuel_price" id="fuelPriceInput" value="{{ form.get('fuel_price', session.get('price_petrol', 102)) }}" step="0.01" class="fw-input" required>
-                                    </div>
-                                </div>
+                                        <label class="adv-option" for="optAvoidTolls">
+                                            <input type="checkbox" id="optAvoidTolls" name="avoid_tolls" value="1" {% if form.get('avoid_tolls') %}checked{% endif %}>
+                                            <span class="adv-option-label">
+                                                <span class="adv-option-title"><i class="fa-solid fa-coins text-warning mr-1 text-[10px]"></i>Avoid Toll Roads</span>
+                                                <span class="adv-option-desc">Route through non-toll corridors only</span>
+                                            </span>
+                                        </label>
 
-                                <!-- Optimize toggle -->
-                                <label class="flex items-center gap-3 py-3 px-4 bg-primary/5 border border-primary/15 rounded-xl cursor-pointer">
-                                    <input type="checkbox" name="optimize" id="optimizeToggle" class="accent-[#0F7B53] w-4 h-4" {% if form.get('optimize') %}checked{% endif %}>
-                                    <div>
-                                        <span class="text-xs font-bold">Optimize Route Order</span>
-                                        <p class="text-[10px] text-gray-400">Automatically reorder stops for shortest path</p>
+                                        <label class="adv-option" for="optAvoidHighways">
+                                            <input type="checkbox" id="optAvoidHighways" name="avoid_highways" value="1" {% if form.get('avoid_highways') %}checked{% endif %}>
+                                            <span class="adv-option-label">
+                                                <span class="adv-option-title"><i class="fa-solid fa-road text-secondary mr-1 text-[10px]"></i>Avoid Highways</span>
+                                                <span class="adv-option-desc">Prefer state &amp; city roads over national highways</span>
+                                            </span>
+                                        </label>
+
+                                        <label class="adv-option" for="optOptimizeFuel">
+                                            <input type="checkbox" id="optOptimizeFuel" name="optimize_fuel" value="1" {% if form.get('optimize_fuel') %}checked{% endif %}>
+                                            <span class="adv-option-label">
+                                                <span class="adv-option-title"><i class="fa-solid fa-leaf text-primary mr-1 text-[10px]"></i>Optimize Fuel Usage</span>
+                                                <span class="adv-option-desc">Prefer fuel-efficient flat terrain where possible</span>
+                                            </span>
+                                        </label>
                                     </div>
-                                    <i class="fa-solid fa-wand-magic-sparkles text-primary ml-auto text-xs"></i>
-                                </label>
-                            </div>
-                        </details>
+
+                                    <!-- Preferred Speed slider -->
+                                    <div class="adv-slider-row">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <label class="text-xs font-bold" for="preferredSpeed">
+                                                <i class="fa-solid fa-gauge-high text-primary mr-1 text-[10px]"></i>Preferred Speed
+                                            </label>
+                                            <span class="text-xs font-black text-primary" id="speedDisplay">60 km/h</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            id="preferredSpeed"
+                                            name="preferred_speed"
+                                            min="40" max="120" step="10"
+                                            value="{{ form.get('preferred_speed', 60) }}"
+                                            oninput="document.getElementById('speedDisplay').textContent = this.value + ' km/h'"
+                                        >
+                                        <div class="flex justify-between text-[9px] text-gray-400 mt-1 font-semibold">
+                                            <span>Eco (40)</span><span>City (60)</span><span>Highway (100)</span><span>Max (120)</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Optimize Route Order toggle -->
+                                    <label class="adv-option" for="optimizeToggle">
+                                        <input type="checkbox" id="optimizeToggle" name="optimize" value="on" {% if form.get('optimize') %}checked{% endif %}>
+                                        <span class="adv-option-label">
+                                            <span class="adv-option-title"><i class="fa-solid fa-wand-magic-sparkles text-primary mr-1 text-[10px]"></i>Optimize Route Order</span>
+                                            <span class="adv-option-desc">Automatically reorder stops for the shortest path</span>
+                                        </span>
+                                    </label>
+
+                                </div><!-- /space-y-4 -->
+                            </div><!-- /#advSettingsPanel -->
+                        </div><!-- /.advanced-settings-wrap -->
 
                         <button type="submit" class="fw-btn fw-btn-primary w-full text-base" data-no-disable="true">
                             <i class="fa-solid fa-route mr-2"></i> Calculate Route
@@ -653,6 +833,59 @@
         const vehicleSel = document.querySelector('select[name="vehicle_id"]');
         if (vehicleSel && vehicleSel.value) {
             window.autoFillVehicle(vehicleSel);
+        }
+
+        // ── Advanced Settings Accordion ───────────────────────────────────────
+        const advBtn   = document.getElementById('advSettingsBtn');
+        const advPanel = document.getElementById('advSettingsPanel');
+        const advChev  = document.getElementById('advChevron');
+
+        if (!advBtn || !advPanel) {
+            console.warn('[AdvSettings] Accordion elements not found.');
+        } else {
+            /**
+             * Toggle the Advanced Settings panel open / closed.
+             * @param {boolean|undefined} forceOpen – if undefined, toggles current state.
+             */
+            function toggleAdvSettings(forceOpen) {
+                const willOpen = forceOpen !== undefined
+                    ? forceOpen
+                    : advBtn.getAttribute('aria-expanded') !== 'true';
+
+                advBtn.setAttribute('aria-expanded', String(willOpen));
+                advPanel.classList.toggle('open', willOpen);
+                if (advChev) advChev.classList.toggle('open', willOpen);
+            }
+
+            // Click anywhere on the header button
+            advBtn.addEventListener('click', () => toggleAdvSettings());
+
+            // Keyboard: Enter / Space
+            advBtn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleAdvSettings();
+                }
+            });
+
+            // Update speed display on page load in case a stored value exists
+            const speedSlider  = document.getElementById('preferredSpeed');
+            const speedDisplay = document.getElementById('speedDisplay');
+            if (speedSlider && speedDisplay) {
+                speedDisplay.textContent = speedSlider.value + ' km/h';
+            }
+
+            // If form was submitted with stops/settings pre-filled, open the panel automatically
+            const hasStops = document.querySelectorAll('#stopsContainer .stop-row').length > 0;
+            const hasSavedPrefs = [
+                'optAvoidTolls', 'optAvoidHighways', 'optOptimizeFuel', 'optimizeToggle'
+            ].some(id => {
+                const el = document.getElementById(id);
+                return el && el.checked;
+            });
+            if (hasStops || hasSavedPrefs) {
+                toggleAdvSettings(true);
+            }
         }
     });
 </script>

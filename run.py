@@ -11,4 +11,4 @@ if __name__ == "__main__":
     print(f"Fuel Cost Calculator is starting...")
     print(f"Local Address: http://127.0.0.1:{port}")
     
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    app.run(host="127.0.0.1", port=port, debug=debug)

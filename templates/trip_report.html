@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Report Summary | FuelWise</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-sm p-6 sm:p-8 relative">
+        
+        <!-- Print Header & Controls -->
+        <div class="no-print flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
+            <a href="/trip/view/{{ trip_id }}" class="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-all">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Back to Workspace</span>
+            </a>
+            
+            <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md">
+                <i class="fa-solid fa-print"></i>
+                <span>Print Report</span>
+            </button>
+        </div>
+
+        <!-- Document Branding -->
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <span class="text-xs font-bold tracking-widest text-emerald-600 uppercase">FuelWise Travel Intelligence</span>
+                <h1 id="rep-trip-name" class="text-3xl font-black text-gray-900 mt-1">Trip Name</h1>
+                <p id="rep-trip-dest" class="text-sm font-semibold text-gray-500 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot"></i> Destination
+                </p>
+            </div>
+            <div class="text-right">
+                <span id="rep-trip-status" class="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-extrabold uppercase tracking-wider">Planned</span>
+                <div id="rep-trip-rating-row" class="flex items-center justify-end gap-1 text-amber-500 text-sm mt-2 hidden">
+                    <!-- Dynamic stars -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-150 mb-8 text-xs font-semibold text-gray-500">
+            <div>
+                <span class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Category</span>
+                <span id="rep-trip-category" class="text-gray-900 font-bold">Leisure</span>
+            </div>
+            <div>
+                <span class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Start Date</span>
+                <span id="rep-trip-start" class="text-gray-900 font-bold">Start Date</span>
+            </div>
+            <div>
+                <span class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">End Date</span>
+                <span id="rep-trip-end" class="text-gray-900 font-bold">End Date</span>
+            </div>
+            <div>
+                <span class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Created At</span>
+                <span id="rep-trip-created" class="text-gray-900 font-bold">Created Date</span>
+            </div>
+        </div>
+
+        <!-- Split Summary Content -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+            
+            <!-- Left Side: Budget Limits & Checklist (7 cols) -->
+            <div class="md:col-span-7 space-y-6">
+                <!-- Budget Card -->
+                <div class="border border-gray-200 rounded-xl p-5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 border-b border-gray-100 pb-2 mb-4">
+                        <i class="fa-solid fa-wallet"></i> Budget & Expenses Summary
+                    </h3>
+                    <div class="grid grid-cols-3 gap-2 text-center py-2 bg-gray-50 rounded-lg border border-gray-150 mb-4">
+                        <div>
+                            <span class="block text-[9px] font-bold text-gray-400 uppercase">Limit Limit</span>
+                            <span id="rep-budget-limit" class="text-sm font-extrabold text-gray-900">₹0</span>
+                        </div>
+                        <div>
+                            <span class="block text-[9px] font-bold text-gray-400 uppercase">Total Spent</span>
+                            <span id="rep-budget-spent" class="text-sm font-extrabold text-emerald-600">₹0</span>
+                        </div>
+                        <div>
+                            <span class="block text-[9px] font-bold text-gray-400 uppercase">Balance</span>
+                            <span id="rep-budget-balance" class="text-sm font-extrabold">₹0</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown -->
+                    <div id="rep-budget-breakdown" class="space-y-2">
+                        <!-- Dynamic bar trackers -->
+                    </div>
+                </div>
+
+                <!-- Checklist Card -->
+                <div class="border border-gray-200 rounded-xl p-5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 border-b border-gray-100 pb-2 mb-3">
+                        <i class="fa-solid fa-list-check"></i> Packing Compliance List
+                    </h3>
+                    <div id="rep-checklist-list" class="space-y-2 text-xs font-semibold">
+                        <!-- Dynamic list -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Timeline Itinerary (5 cols) -->
+            <div class="md:col-span-5 space-y-6">
+                <!-- Itinerary Timeline -->
+                <div class="border border-gray-200 rounded-xl p-5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 border-b border-gray-100 pb-2 mb-4">
+                        <i class="fa-solid fa-clock"></i> Travel Itinerary Timeline
+                    </h3>
+                    <div id="rep-timeline-list" class="space-y-3 relative border-l border-gray-200 pl-4 ml-1">
+                        <!-- Dynamic timeline list -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Notes Section -->
+        <div class="border border-gray-200 rounded-xl p-5 mb-8">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 border-b border-gray-100 pb-2 mb-3">
+                <i class="fa-solid fa-clipboard"></i> Travel Notes & logs
+            </h3>
+            <p id="rep-trip-notes" class="text-xs text-gray-600 leading-relaxed italic whitespace-pre-line">No notes compiled.</p>
+        </div>
+
+        <!-- Photos Section -->
+        <div id="rep-photos-container" class="border border-gray-200 rounded-xl p-5 hidden">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 border-b border-gray-100 pb-2 mb-4">
+                <i class="fa-solid fa-images"></i> Capture Gallery Snaps
+            </h3>
+            <div id="rep-photos-grid" class="grid grid-cols-3 gap-3">
+                <!-- Dynamic photos -->
+            </div>
+        </div>
+
+        <!-- Document Footer -->
+        <div class="mt-12 pt-4 border-t border-gray-100 text-center text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+            FuelWise Fleet Logistics Platform — Report generated locally on browser localStorage.
+        </div>
+    </div>
+
+    <script>
+        const currentTripId = "{{ trip_id }}";
+
+        function getTrips() {
+            const raw = localStorage.getItem('fw-managed-trips');
+            return raw ? JSON.parse(raw) : [];
+        }
+
+        function loadReportData() {
+            const trips = getTrips();
+            const trip = trips.find(x => x.id === currentTripId);
+
+            if (!trip) {
+                alert("Trip record could not be loaded for export.");
+                window.location.href = "/trip";
+                return;
+            }
+
+            // Bind values
+            document.getElementById('rep-trip-name').innerText = trip.name;
+            document.getElementById('rep-trip-dest').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${trip.destination}`;
+            
+            const statusEl = document.getElementById('rep-trip-status');
+            statusEl.innerText = trip.status;
+            
+            const statusColors = {
+                Planned: 'bg-amber-50 text-amber-700 border-amber-100',
+                Active: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                Completed: 'bg-blue-50 text-blue-700 border-blue-100',
+                Cancelled: 'bg-red-50 text-red-700 border-red-100'
+            };
+            statusEl.className = `inline-block px-3 py-1 rounded-full border text-xs font-extrabold uppercase tracking-wider ${statusColors[trip.status] || ''}`;
+
+            document.getElementById('rep-trip-category').innerText = trip.category;
+            document.getElementById('rep-trip-start').innerText = trip.start_date;
+            document.getElementById('rep-trip-end').innerText = trip.end_date;
+            
+            const createdDate = trip.created_at ? new Date(trip.created_at).toLocaleDateString() : 'N/A';
+            document.getElementById('rep-trip-created').innerText = createdDate;
+
+            // Stars rating check
+            const starsRow = document.getElementById('rep-trip-rating-row');
+            if (trip.status === 'Completed' && trip.rating > 0) {
+                starsRow.classList.remove('hidden');
+                starsRow.innerHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    const iconClass = i <= trip.rating ? 'fa-solid fa-star' : 'fa-regular fa-star';
+                    starsRow.innerHTML += `<i class="${iconClass}"></i>`;
+                }
+            }
+
+            // Notes
+            if (trip.notes) {
+                document.getElementById('rep-trip-notes').innerText = trip.notes;
+            }
+
+            // Budget calculations
+            let totalLimit = 0;
+            let totalSpent = 0;
+            const spentByCategory = { Fuel: 0, Food: 0, Lodging: 0, Others: 0 };
+            
+            trip.expenses.forEach(e => {
+                if (spentByCategory[e.category] !== undefined) {
+                    spentByCategory[e.category] += e.amount;
+                    totalSpent += e.amount;
+                }
+            });
+
+            const categories = ["Fuel", "Food", "Lodging", "Others"];
+            categories.forEach(c => {
+                totalLimit += (trip.budget[c] || 0);
+            });
+
+            const balance = totalLimit - totalSpent;
+            document.getElementById('rep-budget-limit').innerText = `₹${totalLimit}`;
+            document.getElementById('rep-budget-spent').innerText = `₹${totalSpent}`;
+            
+            const balEl = document.getElementById('rep-budget-balance');
+            balEl.innerText = `₹${balance}`;
+            if (balance < 0) {
+                balEl.className = "text-sm font-extrabold text-red-600";
+            } else {
+                balEl.className = "text-sm font-extrabold text-emerald-600";
+            }
+
+            // Render category bars
+            const breakdown = document.getElementById('rep-budget-breakdown');
+            breakdown.innerHTML = '';
+            categories.forEach(c => {
+                const lim = trip.budget[c] || 0;
+                const spent = spentByCategory[c];
+                const pct = lim > 0 ? Math.min(100, Math.round((spent / lim) * 100)) : 0;
+                const barColor = spent > lim ? 'bg-red-500' : 'bg-emerald-600';
+
+                const barDiv = document.createElement('div');
+                barDiv.className = "text-xs";
+                barDiv.innerHTML = `
+                    <div class="flex justify-between font-semibold text-gray-500 mb-1">
+                        <span class="text-gray-700 font-bold">${c}</span>
+                        <span>₹${spent} / ₹${lim} (${pct}%)</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-gray-150 rounded-full overflow-hidden">
+                        <div class="h-full ${barColor} rounded-full" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                breakdown.appendChild(barDiv);
+            });
+
+            // Checklist
+            const chkContainer = document.getElementById('rep-checklist-list');
+            chkContainer.innerHTML = '';
+            if (trip.checklist.length === 0) {
+                chkContainer.innerHTML = `<span class="italic text-gray-400">List is empty.</span>`;
+            } else {
+                trip.checklist.forEach(c => {
+                    const icon = c.checked ? 'fa-solid fa-circle-check text-emerald-600' : 'fa-regular fa-circle text-gray-300';
+                    const textClass = c.checked ? 'line-through text-gray-400' : 'text-gray-700';
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "flex items-center gap-2 py-0.5";
+                    itemDiv.innerHTML = `
+                        <i class="${icon}"></i>
+                        <span class="${textClass}">${c.item}</span>
+                    `;
+                    chkContainer.appendChild(itemDiv);
+                });
+            }
+
+            // Itinerary Timeline
+            const tlContainer = document.getElementById('rep-timeline-list');
+            tlContainer.innerHTML = '';
+            if (trip.timeline.length === 0) {
+                tlContainer.innerHTML = `<span class="italic text-gray-400">Timeline is empty.</span>`;
+            } else {
+                trip.timeline.forEach(t => {
+                    const node = document.createElement('div');
+                    node.className = "relative";
+                    const bulletBg = t.completed ? 'bg-emerald-600' : 'bg-gray-300';
+
+                    node.innerHTML = `
+                        <span class="absolute -left-[21px] top-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full ${bulletBg} ring-4 ring-white"></span>
+                        <div class="text-xs">
+                            <span class="block text-[10px] font-bold text-emerald-600 uppercase tracking-wide">${t.time}</span>
+                            <span class="block text-gray-700 font-semibold mt-0.5 ${t.completed ? 'line-through text-gray-400' : ''}">${t.activity}</span>
+                        </div>
+                    `;
+                    tlContainer.appendChild(node);
+                });
+            }
+
+            // Photo Gallery
+            const photosContainer = document.getElementById('rep-photos-container');
+            const photosGrid = document.getElementById('rep-photos-grid');
+            if (trip.photos.length > 0) {
+                photosContainer.classList.remove('hidden');
+                photosGrid.innerHTML = '';
+                trip.photos.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = "rounded-lg overflow-hidden border border-gray-200 h-20 bg-gray-50 flex flex-col justify-between";
+                    card.innerHTML = `
+                        <img src="${p.url}" alt="${p.caption}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                        <span class="block text-[8px] font-bold text-gray-500 p-1 truncate text-center bg-white border-t border-gray-100">${p.caption}</span>
+                    `;
+                    photosGrid.appendChild(card);
+                });
+            }
+        }
+
+        window.onload = loadReportData;
+    </script>
+</body>
+</html>

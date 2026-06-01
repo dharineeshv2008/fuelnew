@@ -15,6 +15,8 @@
     
     <!-- Premium Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth_premium.css') }}">
+
+    <script>window.FIREBASE_ENABLED = false;</script>
     
     <script>
         // Init theme immediately to prevent flashing
@@ -245,23 +247,102 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('authForm');
-            const nameInput = document.getElementById('name');
-            const emailInput = document.getElementById('email');
-            const password = document.getElementById('password');
-            const confirmPassword = document.getElementById('confirm_password');
-            const termsCheck = document.getElementById('terms');
-            const submitBtn = document.getElementById('submitBtn');
-            const toggleBtn = document.getElementById('togglePassword');
-            const eyeIcon = document.getElementById('eyeIcon');
-            const strengthMeter = document.getElementById('strengthMeter');
-            const strengthBar = document.getElementById('strengthBar');
-            const strengthText = document.getElementById('strengthText');
-            const themeToggle = document.getElementById('themeToggle');
-            const toasts = document.querySelectorAll('.toast');
+        // Inline Premium UI Helpers
+        function setButtonLoading(btn, loading, loadingText = 'Please wait...') {
+            if (!btn) return;
+            if (loading) {
+                btn._originalHTML = btn.innerHTML;
+                btn.disabled      = true;
+                btn.innerHTML = `
+                    <span style="display:inline-flex;align-items:center;gap:8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:fw-spin 0.8s linear infinite;color:currentColor;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20" stroke-linecap="round"/>
+                        </svg>
+                        ${loadingText}
+                    </span>
+                `;
+            } else {
+                btn.disabled  = false;
+                btn.innerHTML = btn._originalHTML || btn.innerHTML;
+                delete btn._originalHTML;
+            }
+            if (!document.getElementById('fw-spin-style')) {
+                const style  = document.createElement('style');
+                style.id     = 'fw-spin-style';
+                style.textContent = '@keyframes fw-spin { to { transform: rotate(360deg); } }';
+                document.head.appendChild(style);
+            }
+        }
 
-            // Hide toasts after delay
+        function showFieldError(inputEl, message) {
+            if (!inputEl) return;
+            clearFieldError(inputEl);
+            inputEl.style.borderColor = '#ef4444';
+            inputEl.style.boxShadow   = '0 0 0 2px rgba(239,68,68,0.2)';
+
+            const errEl         = document.createElement('p');
+            errEl.className     = 'fw-field-error';
+            errEl.style.cssText = 'color:#ef4444;font-size:11px;font-weight:600;margin-top:4px;margin-bottom:0;';
+            errEl.textContent   = message;
+
+            const parent = inputEl.closest('.form-group') || inputEl.parentElement;
+            parent.appendChild(errEl);
+        }
+
+        function clearFieldError(inputEl) {
+            if (!inputEl) return;
+            inputEl.style.borderColor = '';
+            inputEl.style.boxShadow   = '';
+            const parent = inputEl.closest('.form-group') || inputEl.parentElement;
+            parent.querySelectorAll('.fw-field-error').forEach(e => e.remove());
+        }
+
+        function clearFieldErrors(formEl) {
+            if (!formEl) return;
+            formEl.querySelectorAll('.fw-field-error').forEach(e => e.remove());
+            formEl.querySelectorAll('input, select, textarea').forEach(el => {
+                el.style.borderColor = '';
+                el.style.boxShadow   = '';
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            
+            let iconClass = 'fa-circle-info';
+            if (type === 'success') iconClass = 'fa-circle-check';
+            else if (type === 'error') iconClass = 'fa-circle-xmark';
+            else if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+
+            toast.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${message}</span>`;
+            const container = document.getElementById('toastContainer');
+            if (container) {
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 400);
+                }, 4000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form            = document.getElementById('authForm');
+            const nameInput       = document.getElementById('name');
+            const emailInput      = document.getElementById('email');
+            const passwordInput   = document.getElementById('password');
+            const confirmPwInput  = document.getElementById('confirm_password');
+            const termsCheck      = document.getElementById('terms');
+            const submitBtn       = document.getElementById('submitBtn');
+            const toggleBtn       = document.getElementById('togglePassword');
+            const eyeIcon         = document.getElementById('eyeIcon');
+            const strengthMeter   = document.getElementById('strengthMeter');
+            const strengthBar     = document.getElementById('strengthBar');
+            const strengthText    = document.getElementById('strengthText');
+            const themeToggle     = document.getElementById('themeToggle');
+            const toasts          = document.querySelectorAll('.toast');
+
+            // Hide server-side toasts
             toasts.forEach(toast => {
                 setTimeout(() => {
                     toast.classList.remove('show');
@@ -269,25 +350,24 @@
                 }, 4000);
             });
 
-            // Password Toggle Visibility
+            // Password toggle
             toggleBtn.addEventListener('click', () => {
-                const isPassword = password.getAttribute('type') === 'password';
-                password.setAttribute('type', isPassword ? 'text' : 'password');
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
                 eyeIcon.classList.toggle('fa-eye', !isPassword);
                 eyeIcon.classList.toggle('fa-eye-slash', isPassword);
             });
 
-            // Password Strength Indicator
-            password.addEventListener('input', () => {
-                const val = password.value;
+            // Password strength meter
+            passwordInput.addEventListener('input', () => {
+                const val = passwordInput.value;
                 if (!val) {
                     strengthMeter.style.display = 'none';
-                    strengthText.style.display = 'none';
+                    strengthText.style.display  = 'none';
                     return;
                 }
-
                 strengthMeter.style.display = 'block';
-                strengthText.style.display = 'block';
+                strengthText.style.display  = 'block';
 
                 let strength = 0;
                 if (val.length >= 8) strength++;
@@ -295,93 +375,21 @@
                 if (/[0-9]/.test(val)) strength++;
                 if (/[^A-Za-z0-9]/.test(val)) strength++;
 
-                let color = '#EF4444';
-                let text = 'Weak';
-                let width = '25%';
-
-                if (strength === 2) { color = '#F59E0B'; text = 'Fair'; width = '50%'; }
-                else if (strength === 3) { color = '#3B82F6'; text = 'Good'; width = '75%'; }
-                else if (strength === 4) { color = '#22C55E'; text = 'Excellent'; width = '100%'; }
-
-                strengthBar.style.width = width;
-                strengthBar.style.backgroundColor = color;
-                strengthText.innerText = `Strength: ${text}`;
-                strengthText.style.color = color;
+                const levels = [
+                    { w: '25%', c: '#EF4444', t: 'Weak' },
+                    { w: '25%', c: '#EF4444', t: 'Weak' },
+                    { w: '50%', c: '#F59E0B', t: 'Fair' },
+                    { w: '75%', c: '#3B82F6', t: 'Good' },
+                    { w: '100%',c: '#22C55E', t: 'Excellent' },
+                ];
+                const { w, c, t } = levels[strength];
+                strengthBar.style.width           = w;
+                strengthBar.style.backgroundColor = c;
+                strengthText.innerText            = `Strength: ${t}`;
+                strengthText.style.color          = c;
             });
 
-            // Toast creator function
-            function showToast(message, category) {
-                const container = document.getElementById('toastContainer');
-                if (!container) return;
-                
-                const toast = document.createElement('div');
-                toast.className = `toast ${category} show`;
-                toast.innerHTML = `
-                    <i class="fa-solid ${category === 'error' ? 'fa-circle-xmark' : 'fa-circle-check'}"></i>
-                    <span>${message}</span>
-                `;
-                container.appendChild(toast);
-                
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 400);
-                }, 3000);
-            }
-
-            // Client-side Validation & Loading Spinner
-            form.addEventListener('submit', (e) => {
-                // Check name
-                if (!nameInput.value.trim()) {
-                    e.preventDefault();
-                    showToast('Please enter your full name.', 'error');
-                    nameInput.focus();
-                    return;
-                }
-                
-                // Check email
-                if (!emailInput.value.trim() || !emailInput.value.includes('@')) {
-                    e.preventDefault();
-                    showToast('Please enter a valid email address.', 'error');
-                    emailInput.focus();
-                    return;
-                }
-
-                // Check password length
-                if (password.value.length < 6) {
-                    e.preventDefault();
-                    showToast('Password must be at least 6 characters.', 'error');
-                    password.focus();
-                    return;
-                }
-
-                // Check password matches
-                if (password.value !== confirmPassword.value) {
-                    e.preventDefault();
-                    showToast('Passwords do not match!', 'error');
-                    confirmPassword.focus();
-                    return;
-                }
-
-                // Check terms
-                if (!termsCheck.checked) {
-                    e.preventDefault();
-                    showToast('You must agree to the Terms of Service.', 'error');
-                    return;
-                }
-
-                const btnText = submitBtn.querySelector('.btn-text');
-                const btnIcon = submitBtn.querySelector('i');
-                const spinner = submitBtn.querySelector('.spinner');
-
-                if (btnText && btnIcon && spinner) {
-                    btnText.style.display = 'none';
-                    btnIcon.style.display = 'none';
-                    spinner.style.display = 'block';
-                    setTimeout(() => { submitBtn.disabled = true; }, 10);
-                }
-            });
-
-            // Theme Toggle click handler
+            // Theme toggle
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
                     const isDark = document.documentElement.classList.toggle('dark');
@@ -390,6 +398,37 @@
                     localStorage.setItem('fw-theme', newTheme);
                 });
             }
+
+            // ── Form Submit ───────────────────────────────────────────────────
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                clearFieldErrors(form);
+
+                const name     = nameInput.value.trim();
+                const email    = emailInput.value.trim();
+                const password = passwordInput.value;
+                const confirm  = confirmPwInput.value;
+
+                // Client-side validation
+                if (!name) {
+                    showFieldError(nameInput, 'Full name is required.'); return;
+                }
+                if (!email || !email.includes('@')) {
+                    showFieldError(emailInput, 'Valid email address is required.'); return;
+                }
+                if (password.length < 6) {
+                    showFieldError(passwordInput, 'Password must be at least 6 characters.'); return;
+                }
+                if (password !== confirm) {
+                    showFieldError(confirmPwInput, 'Passwords do not match.'); return;
+                }
+                if (!termsCheck.checked) {
+                    showToast('You must agree to the Terms of Service.', 'warning'); return;
+                }
+
+                setButtonLoading(submitBtn, true, 'Creating account...');
+                form.submit();
+            });
         });
     </script>
 </body>
