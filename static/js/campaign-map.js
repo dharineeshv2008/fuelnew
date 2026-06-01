@@ -62,34 +62,44 @@ function createCustomPin(color, letter = "") {
     });
 }
 
-function getCampaignCoordinate(stopName) {
-    if (!stopName) return null;
-    if (typeof stopName === 'string' && stopName.includes(',')) {
-        const parts = stopName.split(',');
+function getCampaignCoordinate(stopNameOrId) {
+    if (!stopNameOrId) return null;
+    const searchStr = String(stopNameOrId).toLowerCase().trim();
+    if (searchStr.includes(',')) {
+        const parts = searchStr.split(',');
         return [parseFloat(parts[0]), parseFloat(parts[1])];
     }
-    const d = window.allDistricts.find(item => item.name.toLowerCase() === stopName.toLowerCase() || item.hq.toLowerCase() === stopName.toLowerCase());
-    if (d) return [d.lat, d.lng];
-    const c = window.allConstituencies.find(item => item.name.toLowerCase() === stopName.toLowerCase());
-    if (c) return [c.lat, c.lng];
+    const dById = window.allDistricts.find(item => String(item.id).toLowerCase() === searchStr);
+    if (dById) return [dById.lat, dById.lng];
+    const cById = window.allConstituencies.find(item => String(item.id).toLowerCase() === searchStr);
+    if (cById) return [cById.lat, cById.lng];
+    const dByName = window.allDistricts.find(item => item.name.toLowerCase() === searchStr || item.hq.toLowerCase() === searchStr);
+    if (dByName) return [dByName.lat, dByName.lng];
+    const cByName = window.allConstituencies.find(item => item.name.toLowerCase() === searchStr);
+    if (cByName) return [cByName.lat, cByName.lng];
     return null;
 }
 
-window.toggleCampaignStop = function(name, add) {
-    if (!name) return;
+window.toggleCampaignStop = function(idOrName, add) {
+    if (!idOrName) return;
     const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
+    const searchStr = String(idOrName).toLowerCase().trim();
     
     if (isDistrictMode) {
-        // District Mode
-        const cb = Array.from(document.querySelectorAll('.dist-check')).find(el => el.dataset.name.toLowerCase() === name.toLowerCase());
+        let cb = document.querySelector(`.dist-check[value="${idOrName}"]`);
+        if (!cb) {
+            cb = Array.from(document.querySelectorAll('.dist-check')).find(el => el.dataset.name && el.dataset.name.toLowerCase() === searchStr);
+        }
         if (cb) {
             cb.checked = add;
             cb.dispatchEvent(new Event('change'));
             window.updateDistCount(cb);
         }
     } else {
-        // Constituency Mode
-        const cb = Array.from(document.querySelectorAll('.const-check')).find(el => el.dataset.name.toLowerCase() === name.toLowerCase());
+        let cb = document.querySelector(`.const-check[value="${idOrName}"]`);
+        if (!cb) {
+            cb = Array.from(document.querySelectorAll('.const-check')).find(el => el.dataset.name && el.dataset.name.toLowerCase() === searchStr);
+        }
         if (cb) {
             cb.checked = add;
             cb.dispatchEvent(new Event('change'));
@@ -116,6 +126,7 @@ window.recalculateCampaignStats = function(distanceKm, durationHours) {
     const statFuel = document.getElementById('statFuel');
     const statCost = document.getElementById('statCost');
     const statDays = document.getElementById('statDays');
+    const statTravelTime = document.getElementById('statTravelTime');
     
     const currency = window.sessionCurrency || "₹";
     
@@ -128,6 +139,11 @@ window.recalculateCampaignStats = function(distanceKm, durationHours) {
     if (statFuel) statFuel.textContent = fuelNeeded.toFixed(2) + " L";
     if (statCost) statCost.textContent = currency + totalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 });
     if (statDays) statDays.textContent = days;
+    
+    if (statTravelTime) {
+        const hours = durationHours || (distanceKm / 60.0);
+        statTravelTime.textContent = hours.toFixed(1) + " hrs";
+    }
     
     const statsStopsVal = document.getElementById('statsStopsVal');
     if (statsStopsVal) statsStopsVal.textContent = window.routeStops.length;
@@ -304,9 +320,23 @@ window.toggleAccordion = function(id) {
     }
 };
 
+window.isDistrictSelectedState = function(distId) {
+    const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
+    if (isDistrictMode) {
+        const cb = document.querySelector(`.dist-check[value="${distId}"]`);
+        return cb && cb.checked ? 'all' : 'none';
+    } else {
+        const consts = document.querySelectorAll(`.const-check[data-district-id="${distId}"]`);
+        if (consts.length === 0) return 'none';
+        const checked = document.querySelectorAll(`.const-check[data-district-id="${distId}"]:checked`);
+        if (checked.length === 0) return 'none';
+        if (checked.length === consts.length) return 'all';
+        return 'partial';
+    }
+};
+
 window.isDistrictSelected = function(distId) {
-    const cb = document.querySelector(`.dist-check[value="${distId}"]`);
-    return cb ? cb.checked : false;
+    return window.isDistrictSelectedState(distId) !== 'none';
 };
 
 window.toggleDistrictSelection = function(distId) {
@@ -319,18 +349,63 @@ window.toggleDistrictSelection = function(distId) {
     }
 };
 
+window.toggleDistrictConstituenciesSelection = function(distId) {
+    console.log(`[Campaign Map] District marker click in Constituency Mode -> Toggling constituencies for district: ${distId}`);
+    const cbs = document.querySelectorAll(`.const-check[data-district-id="${distId}"]`);
+    if (cbs.length === 0) return;
+    
+    let allChecked = true;
+    cbs.forEach(cb => {
+        if (!cb.checked) allChecked = false;
+    });
+    
+    cbs.forEach(cb => {
+        cb.checked = !allChecked;
+        cb.dispatchEvent(new Event('change'));
+    });
+    
+    // Automatically open accordion panel
+    const contentDiv = document.getElementById('content-' + distId);
+    const icon = document.getElementById('icon-' + distId);
+    if (contentDiv) {
+        if (!allChecked) {
+            contentDiv.classList.remove('hidden');
+            if (icon) icon.style.transform = 'rotate(90deg)';
+        }
+    }
+    
+    window.updateCount();
+};
+
 window.updateDistrictMarkerStyle = function(distId) {
     const marker = districtMarkers[distId];
     if (!marker) return;
     
-    if (window.isDistrictSelected(distId)) {
+    const state = window.isDistrictSelectedState(distId);
+    if (state === 'all') {
         marker.setStyle({
-            radius: 8,
+            radius: 8.5,
             fillColor: '#F1C40F', // Golden amber highlight
             color: '#FFD700',
-            weight: 3,
+            weight: 3.5,
             fillOpacity: 1.0
         });
+        if (marker._path) {
+            marker._path.classList.add('glowing-marker-dist');
+            marker._path.classList.remove('orange-glowing-marker');
+        }
+    } else if (state === 'partial') {
+        marker.setStyle({
+            radius: 7.5,
+            fillColor: '#E67E22', // Orange highlight
+            color: '#F39C12',
+            weight: 2.5,
+            fillOpacity: 0.95
+        });
+        if (marker._path) {
+            marker._path.classList.add('orange-glowing-marker');
+            marker._path.classList.remove('glowing-marker-dist');
+        }
     } else {
         marker.setStyle({
             radius: 5,
@@ -339,6 +414,10 @@ window.updateDistrictMarkerStyle = function(distId) {
             weight: 1.5,
             fillOpacity: 0.9
         });
+        if (marker._path) {
+            marker._path.classList.remove('glowing-marker-dist');
+            marker._path.classList.remove('orange-glowing-marker');
+        }
     }
 };
 
@@ -375,12 +454,15 @@ window.updateConstituencyMarkerStyle = function(constId) {
     if (marker) {
         if (isSel) {
             marker.setStyle({
-                radius: 6,
+                radius: 6.5,
                 fillColor: '#F1C40F', // Golden amber highlight
                 color: '#FFD700',
-                weight: 2,
+                weight: 2.5,
                 fillOpacity: 1.0
             });
+            if (marker._path) {
+                marker._path.classList.add('glowing-marker-const');
+            }
         } else {
             marker.setStyle({
                 radius: 3.5,
@@ -389,6 +471,9 @@ window.updateConstituencyMarkerStyle = function(constId) {
                 weight: 1,
                 fillOpacity: 0.65
             });
+            if (marker._path) {
+                marker._path.classList.remove('glowing-marker-const');
+            }
         }
     }
     if (poly) {
@@ -400,6 +485,9 @@ window.updateConstituencyMarkerStyle = function(constId) {
                 fillOpacity: 0.35,
                 opacity: 0.95
             });
+            if (poly._path) {
+                poly._path.classList.add('glowing-polygon');
+            }
         } else {
             poly.setStyle({
                 color: '#18A06A',
@@ -408,6 +496,9 @@ window.updateConstituencyMarkerStyle = function(constId) {
                 fillOpacity: 0.05,
                 opacity: 0.25
             });
+            if (poly._path) {
+                poly._path.classList.remove('glowing-polygon');
+            }
         }
     }
 };
@@ -434,6 +525,144 @@ window.selectDistrictConsts = function(id, checked) {
     window.updateCount();
 };
 
+function optimizeRouteJS(stops, coordinatesMap) {
+    if (stops.length <= 2) return stops;
+    
+    function getDist(s1, s2) {
+        const c1 = coordinatesMap[s1];
+        const c2 = coordinatesMap[s2];
+        if (!c1 || !c2) return 100.0;
+        const dx = c1[0] - c2[0];
+        const dy = c1[1] - c2[1];
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+    
+    function routeDistance(route) {
+        let dist = 0;
+        for (let i = 0; i < route.length - 1; i++) {
+            dist += getDist(route[i], route[i+1]);
+        }
+        return dist;
+    }
+    
+    function permutations(array) {
+        if (array.length === 0) return [[]];
+        const result = [];
+        for (let i = 0; i < array.length; i++) {
+            const current = array[i];
+            const remaining = array.slice(0, i).concat(array.slice(i + 1));
+            const subPerms = permutations(remaining);
+            for (let j = 0; j < subPerms.length; j++) {
+                result.push([current].concat(subPerms[j]));
+            }
+        }
+        return result;
+    }
+    
+    if (stops.length <= 8) {
+        const first = stops[0];
+        const rest = stops.slice(1);
+        const perms = permutations(rest);
+        let minD = Infinity;
+        let bestR = stops;
+        
+        perms.forEach(perm => {
+            const r = [first].concat(perm);
+            const d = routeDistance(r);
+            if (d < minD) {
+                minD = d;
+                bestR = r;
+            }
+        });
+        return bestR;
+    }
+    
+    let unvisited = stops.slice(1);
+    let current = stops[0];
+    let route = [current];
+    while (unvisited.length > 0) {
+        let nearestIdx = 0;
+        let minDist = Infinity;
+        for (let i = 0; i < unvisited.length; i++) {
+            const d = getDist(current, unvisited[i]);
+            if (d < minDist) {
+                minDist = d;
+                nearestIdx = i;
+            }
+        }
+        current = unvisited[nearestIdx];
+        route.push(current);
+        unvisited.splice(nearestIdx, 1);
+    }
+    
+    let improved = true;
+    while (improved) {
+        improved = false;
+        for (let i = 1; i < route.length - 2; i++) {
+            for (let j = i + 1; j < route.length; j++) {
+                if (j - i === 1) continue;
+                const newRoute = route.slice();
+                const segment = newRoute.slice(i, j).reverse();
+                newRoute.splice(i, j - i, ...segment);
+                if (routeDistance(newRoute) < routeDistance(route)) {
+                    route = newRoute;
+                    improved = true;
+                }
+            }
+        }
+    }
+    return route;
+}
+
+let liveRouteTimeout = null;
+
+window.triggerLiveRouteRecalc = function() {
+    console.log("[Campaign Map] Selection changed, debouncing live route recalculation...");
+    if (liveRouteTimeout) clearTimeout(liveRouteTimeout);
+    liveRouteTimeout = setTimeout(async () => {
+        await window.generateLiveCampaignRoute();
+    }, 600);
+};
+
+window.generateLiveCampaignRoute = async function() {
+    if (!map) return;
+    
+    const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
+    const checkedSelectors = isDistrictMode ? '.dist-check:checked' : '.const-check:checked';
+    const checks = document.querySelectorAll(checkedSelectors);
+    
+    console.log(`[Campaign Map] Running live route calculation for ${checks.length} stops.`);
+    
+    if (checks.length < 2) {
+        if (serverRouteGroup) {
+            map.removeLayer(serverRouteGroup);
+            serverRouteGroup = null;
+        }
+        if (liveRouteGroup) {
+            map.removeLayer(liveRouteGroup);
+            liveRouteGroup = null;
+        }
+        window.routeStops = [];
+        window.recalculateCampaignStats(0, 0);
+        return;
+    }
+    
+    const selectedStops = [];
+    checks.forEach(cb => {
+        selectedStops.push(cb.dataset.name || cb.value);
+    });
+    
+    const coordsMap = {};
+    selectedStops.forEach(s => {
+        coordsMap[s] = getCampaignCoordinate(s);
+    });
+    
+    const optimized = optimizeRouteJS(selectedStops, coordsMap);
+    window.routeStops = optimized;
+    
+    await renderServerRoute();
+};
+
 window.updateCount = function(changedCb) {
     const selectedCheckboxes = document.querySelectorAll('.const-check:checked');
     const totalSelected = selectedCheckboxes.length;
@@ -453,10 +682,11 @@ window.updateCount = function(changedCb) {
         btn.disabled = totalSelected === 0;
     });
     
-    // Sync marker styles with new checked states
     window.syncMarkerStylesWithCheckboxes();
     
     window.updateLivePreview(totalSelected, uniqueDistricts.size, changedCb);
+    
+    window.triggerLiveRouteRecalc();
 };
 
 window.updateDistCount = function(changedCb) {
@@ -473,10 +703,11 @@ window.updateDistCount = function(changedCb) {
         btn.disabled = totalSelected === 0;
     });
     
-    // Sync marker styles with new checked states
     window.syncMarkerStylesWithCheckboxes();
     
     window.updateLivePreview(totalSelected, totalSelected, changedCb);
+    
+    window.triggerLiveRouteRecalc();
 };
 
 window.updateLivePreview = function(count, districtCount, changedCb) {
@@ -490,6 +721,7 @@ window.updateLivePreview = function(count, districtCount, changedCb) {
     const statFuel = document.getElementById('statFuel');
     const statCost = document.getElementById('statCost');
     const statDays = document.getElementById('statDays');
+    const statTravelTime = document.getElementById('statTravelTime');
     const statDistricts = document.getElementById('statDistricts');
     const statConstituencies = document.getElementById('statConstituencies');
     const statCoverage = document.getElementById('statCoverage');
@@ -497,34 +729,11 @@ window.updateLivePreview = function(count, districtCount, changedCb) {
     const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
     
     if (window.routeStops.length > 0) {
-        // Display exact stats from server-generated route path
         const readyBadge = document.getElementById('readyBadge');
         if (readyBadge) readyBadge.classList.remove('hidden');
         
         if (statsStopsVal) statsStopsVal.textContent = window.routeStops.length;
-        if (statsDistVal) statsDistVal.textContent = window.serverTotalKm + " km";
-        if (statsFuelVal) statsFuelVal.textContent = window.serverFuelNeeded + " L";
-        if (statsCostVal) statsCostVal.textContent = window.serverCurrency + Number(window.serverTotalCost).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        if (statsDaysVal) statsDaysVal.textContent = window.serverDays;
-        
-        if (statTotalKm) statTotalKm.textContent = window.serverTotalKm + " km";
-        if (statFuel) statFuel.textContent = window.serverFuelNeeded + " L";
-        if (statCost) statCost.textContent = window.serverCurrency + Number(window.serverTotalCost).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        if (statDays) statDays.textContent = window.serverDays;
-        
-        if (statDistricts) {
-            statDistricts.textContent = isDistrictMode ? window.routeStops.length : window.serverDistrictCount;
-        }
-        if (statConstituencies) {
-            statConstituencies.textContent = isDistrictMode ? '-' : window.routeStops.length;
-        }
-        if (statCoverage) {
-            const denom = isDistrictMode ? 38 : 234;
-            statCoverage.textContent = `${((window.routeStops.length / denom) * 100).toFixed(1)}%`;
-        }
-        if (map) renderServerRoute();
     } else {
-        // Display draft selections stats
         const readyBadge = document.getElementById('readyBadge');
         if (readyBadge) readyBadge.classList.add('hidden');
         
@@ -538,6 +747,7 @@ window.updateLivePreview = function(count, districtCount, changedCb) {
         if (statFuel) statFuel.textContent = "0 L";
         if (statCost) statCost.textContent = "₹0";
         if (statDays) statDays.textContent = "0";
+        if (statTravelTime) statTravelTime.textContent = "0 hrs";
         
         if (isDistrictMode) {
             if (statDistricts) statDistricts.textContent = count;
@@ -726,9 +936,29 @@ function updateViewportRendering() {
         }
     }
     
+    const constCb = document.getElementById('layerConstituencies');
+    const constEnabled = constCb ? constCb.checked : true;
+    
+    window.allConstituencies.forEach(c => {
+        const marker = constituencyMarkers[c.id];
+        const poly = constituencyPolygons[c.id];
+        if (!marker || !poly) return;
+        
+        const inViewport = bounds.contains(marker.getLatLng());
+        if (inViewport && constEnabled) {
+            if (!map.hasLayer(poly)) map.addLayer(poly);
+            if (!map.hasLayer(marker)) map.addLayer(marker);
+        } else {
+            if (map.hasLayer(poly)) map.removeLayer(poly);
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        }
+    });
+    
     if (currentActiveDistrictId && districtGISGroups[currentActiveDistrictId]) {
         const group = districtGISGroups[currentActiveDistrictId];
         group.eachLayer(layer => {
+            if (layer.isConstituency) return;
+            
             let inViewport = false;
             if (layer.getLatLng) inViewport = bounds.contains(layer.getLatLng());
             else if (layer.getBounds) inViewport = bounds.intersects(layer.getBounds());
@@ -742,9 +972,6 @@ function updateViewportRendering() {
                 };
                 const mappedCategory = categoryMap[layer.poiType] || 'temples';
                 const cb = document.getElementById('layer' + mappedCategory.charAt(0).toUpperCase() + mappedCategory.slice(1));
-                categoryEnabled = cb ? cb.checked : true;
-            } else if (layer.isConstituency) {
-                const cb = document.getElementById('layerConstituencies');
                 categoryEnabled = cb ? cb.checked : true;
             }
             
@@ -1032,7 +1259,7 @@ window.initCampaignMap = async function() {
     map = L.map('plannerMap', {
         zoomControl: true,
         attributionControl: false,
-        preferCanvas: true,
+        preferCanvas: false,
         zoomAnimation: true,
         markerZoomAnimation: true,
         fadeAnimation: true,
@@ -1134,11 +1361,15 @@ window.initCampaignMap = async function() {
             const marker = L.circleMarker([d.lat, d.lng], { radius: 5, fillColor: '#000000', color: '#18A06A', weight: 1.5, fillOpacity: 0.9 });
             const circle = L.circle([d.lat, d.lng], { radius: 25000, color: '#18A06A', weight: 1, dashArray: '3 5', fill: false, interactive: false });
             
-            marker.bindPopup(getCampaignPopupHtml(d.name, `District capital`));
+            marker.bindPopup(getCampaignPopupHtml(d.name, `District capital`, d.id));
             marker.bindTooltip(`<b>${d.name}</b>`, { direction: 'top', offset: [0, -4] });
             
             districtMarkers[d.id] = marker;
             districtBoundsCircles[d.id] = circle;
+            
+            marker.on('add', () => {
+                window.updateDistrictMarkerStyle(d.id);
+            });
             
             // Hover effect for discoverability
             marker.on('mouseover', function() {
@@ -1152,13 +1383,16 @@ window.initCampaignMap = async function() {
                 }
             });
             
-            // Click handler: Activate GIS & Toggle selection if in District mode
+            // Click handler: Activate GIS & Toggle selection
             marker.on('click', (e) => {
                 L.DomEvent.stopPropagation(e);
+                console.log(`[Campaign Map] District marker click event: ${d.name} (${d.id})`);
                 activateDistrictGIS(d.id);
                 const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
                 if (isDistrictMode) {
                     window.toggleDistrictSelection(d.id);
+                } else {
+                    window.toggleDistrictConstituenciesSelection(d.id);
                 }
             });
         });
@@ -1190,9 +1424,15 @@ window.initCampaignMap = async function() {
             marker.bindPopup(popupText);
             poly.bindTooltip(`${c.name} constituency`, { sticky: true });
             
-            // Store references
-            constituencyMarkers[c.id] = marker;
+            // Store refer            constituencyMarkers[c.id] = marker;
             constituencyPolygons[c.id] = poly;
+            
+            marker.on('add', () => {
+                window.updateConstituencyMarkerStyle(c.id);
+            });
+            poly.on('add', () => {
+                window.updateConstituencyMarkerStyle(c.id);
+            });
 
             // Hover effects & click toggles for constituency marker
             marker.on('mouseover', function() {
@@ -1207,9 +1447,12 @@ window.initCampaignMap = async function() {
             });
             marker.on('click', (e) => {
                 L.DomEvent.stopPropagation(e);
+                console.log(`[Campaign Map] Constituency marker click event: ${c.name} (${c.id})`);
                 const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
                 if (!isDistrictMode) {
                     window.toggleConstituencySelection(c.id);
+                } else {
+                    window.toggleDistrictSelection(c.district_id);
                 }
             });
 
@@ -1226,14 +1469,18 @@ window.initCampaignMap = async function() {
             });
             poly.on('click', (e) => {
                 L.DomEvent.stopPropagation(e);
+                console.log(`[Campaign Map] Constituency polygon click event: ${c.name} (${c.id})`);
                 const isDistrictMode = (window.routeType === "district" || document.getElementById('tabInput')?.value === 'district');
                 if (!isDistrictMode) {
                     window.toggleConstituencySelection(c.id);
+                } else {
+                    window.toggleDistrictSelection(c.district_id);
                 }
             });
             
-            const cGroup = L.layerGroup([poly, marker]);
-            if (districtGISGroups[c.district_id]) districtGISGroups[c.district_id].addLayer(cGroup);
+            // Do not add constituencies to districtGISGroups to prevent duplicate layer renders
+            // const cGroup = L.layerGroup([poly, marker]);
+            // if (districtGISGroups[c.district_id]) districtGISGroups[c.district_id].addLayer(cGroup);roup);
         });
         
         // Process places POIs

@@ -421,6 +421,35 @@
         .map-floating-control { display: none; }
         .map-floating-control.show-panel { display: block !important; top: 50px !important; right: 8px !important; }
     }
+
+    /* Glowing Leaflet marker effects */
+    .glowing-marker-dist {
+        filter: drop-shadow(0 0 6px #FFD700) drop-shadow(0 0 2px #F1C40F);
+        animation: marker-glow-dist 1.5s infinite alternate ease-in-out;
+    }
+    .orange-glowing-marker {
+        filter: drop-shadow(0 0 5px #E67E22);
+        animation: marker-glow-orange 1.5s infinite alternate ease-in-out;
+    }
+    .glowing-marker-const {
+        filter: drop-shadow(0 0 4px #FFD700);
+        animation: marker-glow-const 1.5s infinite alternate ease-in-out;
+    }
+    .glowing-polygon {
+        filter: drop-shadow(0 0 2px #FFD700);
+    }
+    @keyframes marker-glow-dist {
+        0% { filter: drop-shadow(0 0 3px #F1C40F); }
+        100% { filter: drop-shadow(0 0 10px #FFD700) drop-shadow(0 0 3px #F39C12); }
+    }
+    @keyframes marker-glow-orange {
+        0% { filter: drop-shadow(0 0 2px #F39C12); }
+        100% { filter: drop-shadow(0 0 7px #E67E22); }
+    }
+    @keyframes marker-glow-const {
+        0% { filter: drop-shadow(0 0 2px #F1C40F); }
+        100% { filter: drop-shadow(0 0 7px #FFD700); }
+    }
 </style>
 {% endblock %}
 
@@ -553,7 +582,7 @@
                                         {% endfor %}
                                     {% endif %}
                                     <label class="const-item-checkbox" data-name="{{ c.name }} {{ district }}">
-                                        <input type="checkbox" name="constituency_ids[]" value="{{ c.id }}" class="const-check" data-district-id="{{ dist_id }}" onchange="updateCount(this)" {% if is_selected %}checked{% endif %}>
+                                        <input type="checkbox" name="constituency_ids[]" value="{{ c.id }}" class="const-check" data-name="{{ c.name }}" data-district-id="{{ dist_id }}" onchange="updateCount(this)" {% if is_selected %}checked{% endif %}>
                                         <span class="const-item-label">{{ c.name }}</span>
                                     </label>
                                     {% endfor %}
@@ -573,7 +602,7 @@
                                 {% endfor %}
                             {% endif %}
                             <label class="const-item-checkbox" data-name="{{ d.name }}">
-                                <input type="checkbox" name="district_ids[]" value="{{ d.id }}" class="dist-check" onchange="updateDistCount(this)" {% if is_dist_selected %}checked{% endif %}>
+                                <input type="checkbox" name="district_ids[]" value="{{ d.id }}" class="dist-check" data-name="{{ d.name }}" onchange="updateDistCount(this)" {% if is_dist_selected %}checked{% endif %}>
                                 <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ d.name }}</span>
                             </label>
                             {% endfor %}
@@ -896,7 +925,7 @@
                     <i class="fa-solid fa-chevron-down toggle-icon lg:hidden text-xs text-gray-400"></i>
                 </summary>
                 <div class="mobile-collapsible-content pt-6">
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                         <!-- Dist Covered -->
                         <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Districts</p>
@@ -938,6 +967,17 @@
                         <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Estimated Days</p>
                             <p class="text-lg font-black text-white" id="statDays">{{ result.days if result else 0 }}</p>
+                        </div>
+                        <!-- Travel Time -->
+                        <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Travel Time</p>
+                            <p class="text-lg font-black text-white" id="statTravelTime">
+                                {% if result %}
+                                    {{ result.travel_hours if result.travel_hours is defined else (result.total_km / 60.0)|round(1) }} hrs
+                                {% else %}
+                                    0 hrs
+                                {% endif %}
+                            </p>
                         </div>
                         <!-- Coverage % -->
                         <div class="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl p-4 text-center">
