@@ -1,7 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="animate-fade-up max-w-6xl mx-auto" id="page-dashboard">
+<!-- Premium Loading Skeleton -->
+<div id="dashboard-skeleton" class="animate-pulse space-y-8 px-2 max-w-6xl mx-auto">
+    <!-- Header Skeleton -->
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
+        <div class="space-y-3 w-full md:w-auto">
+            <div class="h-8 w-64 bg-gray-200 dark:bg-white/10 rounded-lg"></div>
+            <div class="h-4 w-96 max-w-full bg-gray-200 dark:bg-white/5 rounded-lg"></div>
+        </div>
+        <div class="h-6 w-32 bg-gray-200 dark:bg-white/10 rounded-full"></div>
+    </div>
+    
+    <!-- Premium Stat Cards Skeleton -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 px-2">
+        <div class="fw-card h-32 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+        <div class="fw-card h-32 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+        <div class="fw-card h-32 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+        <div class="fw-card h-32 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+    </div>
+
+    <!-- Quick Actions Skeleton -->
+    <div class="mb-10 px-2">
+        <div class="h-4 w-48 bg-gray-200 dark:bg-white/10 rounded-lg mb-4"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="fw-card h-24 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+            <div class="fw-card h-24 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+            <div class="fw-card h-24 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+        </div>
+    </div>
+
+    <!-- Charts Skeleton -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10 px-2">
+        <div class="lg:col-span-8 fw-card h-80 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+        <div class="lg:col-span-4 fw-card h-80 bg-gray-200 dark:bg-white/5 border border-transparent rounded-2xl"></div>
+    </div>
+</div>
+
+<div class="animate-fade-up max-w-6xl mx-auto" id="page-dashboard" style="display: none;">
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 px-2">
         <div>
@@ -313,14 +349,17 @@
 </div>
 
 <script>
-// Real Monthly Spending Chart Renderer
-(function () {
+// Real Monthly Spending Chart Renderer - Exposed as window.renderSpendChart to run when layout is ready
+window.renderSpendChart = function () {
     const rawData = {{ monthly_spend_data | tojson }};
     if (!rawData || rawData.length === 0) return;
 
     const svg = document.getElementById('spendChart');
     const labelsEl = document.getElementById('spendChartLabels');
     if (!svg || !labelsEl) return;
+    
+    // Clear any previous elements to avoid duplication on re-renders
+    svg.innerHTML = '';
 
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const values = rawData.map(d => d[1]);
@@ -409,6 +448,76 @@
 
     // X-axis labels
     labelsEl.innerHTML = labels.map(l => `<span>${l}</span>`).join('');
-})();
+};
+
+// Dashboard initialization and verification lifecycle
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Dashboard Mounted
+    console.log("[Debug] Dashboard Mounted");
+
+    // 2. Auth & User loaded checks
+    const userObj = {{ user | tojson if user else 'null' }};
+    if (userObj) {
+        console.log("[Debug] Auth Loaded");
+        console.log("[Debug] User Loaded");
+    } else {
+        console.warn("[Debug] Warning: User data context is empty");
+    }
+
+    // 3. Check layout stability before showing content
+    function checkLayoutReady() {
+        const sidebar = document.getElementById("sidebar");
+        const mainContent = document.querySelector(".main-content");
+        const contentContainer = document.querySelector(".content-container");
+
+        const sidebarWidth = sidebar ? sidebar.offsetWidth : 0;
+        const mainContentWidth = mainContent ? mainContent.offsetWidth : 0;
+        const containerWidth = contentContainer ? contentContainer.offsetWidth : 0;
+
+        // Check if layout dimensions are fully calculated and available
+        // If sidebar is displayed on desktop, its width should be > 0.
+        // The container width should also be resolved.
+        const isDesktop = window.innerWidth > 1024;
+        const sidebarResolved = isDesktop ? (sidebarWidth > 0) : true;
+        const containerResolved = containerWidth > 0;
+
+        // Ensure Tailwind CDN scripts have finished injection and compiling classes
+        const tailwindInjected = (typeof tailwind !== 'undefined') || document.querySelector('style[data-tailwind]');
+
+        return sidebarResolved && containerResolved && tailwindInjected;
+    }
+
+    let checkAttempts = 0;
+    function tryInitializeDashboard() {
+        checkAttempts++;
+        if (checkLayoutReady() || checkAttempts > 15) {
+            console.log("[Debug] Layout Initialized");
+            
+            // Recalculate dimensions & render
+            setTimeout(() => {
+                const skeleton = document.getElementById("dashboard-skeleton");
+                const dashboard = document.getElementById("page-dashboard");
+                
+                if (skeleton && dashboard) {
+                    skeleton.style.display = "none";
+                    dashboard.style.display = "block";
+                    
+                    // Force a relayout trigger so cards and SVGs receive correct container dimensions
+                    window.dispatchEvent(new Event('resize'));
+                    
+                    // Render the chart now that container dimensions are resolved
+                    window.renderSpendChart();
+                    
+                    console.log("[Debug] Dashboard Ready");
+                }
+            }, 100);
+        } else {
+            // Layout not stable yet, retry on next frame
+            requestAnimationFrame(tryInitializeDashboard);
+        }
+    }
+
+    tryInitializeDashboard();
+});
 </script>
 {% endblock content %}
