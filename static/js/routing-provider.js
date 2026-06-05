@@ -55,11 +55,22 @@ class FuelWiseRoutingProvider {
             throw new Error("At least two coordinates are required for routing.");
         }
 
+        // ── Debug Logging ──────────────────────────────────────────────────────
+        const originName      = namesList[0];
+        const destName        = namesList[namesList.length - 1];
+        const waypointNames   = namesList.slice(1, -1);
+        console.log("╔══════════════════════════════════════════════");
+        console.log("║ [RoutingProvider] Route Resolution");
+        console.log("║ Origin     :", originName, coordsList[0]);
+        console.log("║ Destination:", destName, coordsList[coordsList.length - 1]);
+        console.log("║ Waypoints  :", waypointNames.length > 0 ? waypointNames : "(none)");
+        console.log("╚══════════════════════════════════════════════");
+
         // 1. Check Cache
         if (window.routeCache) {
             const cached = window.routeCache.get(coordsList);
             if (cached) {
-                console.log("Routing Cache Hit:", cached);
+                console.log("[RoutingProvider] Cache Hit:", cached);
                 return cached;
             }
         }
@@ -71,8 +82,12 @@ class FuelWiseRoutingProvider {
             if (optimize && coordsList.length > 3) {
                 url = `https://router.project-osrm.org/trip/v1/driving/${osrmCoords}?overview=full&geometries=geojson&source=first&destination=last`;
             } else {
-                url = `https://router.project-osrm.org/route/v1/driving/${osrmCoords}?overview=full&geometries=geojson`;
+                // Build waypoints index list: 0;1;2;...;N to force route through ALL points
+                const waypointIndices = coordsList.map((_, i) => i).join(';');
+                url = `https://router.project-osrm.org/route/v1/driving/${osrmCoords}?overview=full&geometries=geojson&waypoints=${waypointIndices}`;
             }
+
+            console.log("[RoutingProvider] OSRM URL:", url);
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout for OSRM response
@@ -85,6 +100,12 @@ class FuelWiseRoutingProvider {
             
             if (data.code === "Ok") {
                 const route = optimize ? data.trips[0] : data.routes[0];
+
+                // Validate route geometry
+                if (!route.geometry || !route.geometry.coordinates || route.geometry.coordinates.length < 2) {
+                    throw new Error("OSRM returned invalid geometry for waypoint route");
+                }
+
                 const resolvedRoute = {
                     distance: route.distance / 1000.0, // convert to km
                     duration: route.duration / 3600.0, // convert to hours
@@ -92,6 +113,13 @@ class FuelWiseRoutingProvider {
                     legs: (route.legs || []).map(l => l.distance / 1000.0),
                     source: "OSRM"
                 };
+
+                console.log("[RoutingProvider] OSRM resolved →", {
+                    distance: resolvedRoute.distance.toFixed(1) + " km",
+                    duration: resolvedRoute.duration.toFixed(2) + " hrs",
+                    legs: resolvedRoute.legs.map(l => l.toFixed(1) + " km"),
+                    source: resolvedRoute.source
+                });
 
                 // Cache it
                 if (window.routeCache) {
@@ -101,9 +129,10 @@ class FuelWiseRoutingProvider {
                 return resolvedRoute;
             }
         } catch (e) {
-            console.warn("OSRM routing failed. Falling back to local matrix...", e);
+            console.warn("[RoutingProvider] OSRM routing failed. Falling back to local matrix...", e);
             showToast("OSRM routing unavailable. Operating in local fallback mode.", "warning");
         }
+
 
         // 3. Try Local Matrix Fallback (distances.json)
         try {

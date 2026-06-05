@@ -660,9 +660,25 @@ window.calculateAndRoute = async function() {
         return;
     }
     
+    // ── Debug Logging ──────────────────────────────────────────────────────────
+    const waypointNames = namesList.slice(1, -1);
+    console.log("╔══════════════════════════════════════════════════════════");
+    console.log("║ [SmartPlanner] calculateAndRoute() called");
+    console.log("║ Origin     :", namesList[0], "→", getCoordinate(namesList[0]));
+    console.log("║ Destination:", namesList[namesList.length - 1], "→", getCoordinate(namesList[namesList.length - 1]));
+    if (waypointNames.length > 0) {
+        waypointNames.forEach((wp, i) => {
+            console.log(`║ Waypoint ${i+1} : ${wp} → ${JSON.stringify(getCoordinate(wp))}`);
+        });
+    } else {
+        console.log("║ Waypoints  : (none)");
+    }
+    console.log("║ Optimize   :", optimizeChecked);
+    console.log("╚══════════════════════════════════════════════════════════");
+    
     // Set loading state and log start
     setIsCalculating(true);
-    console.log("Calculation started");
+    console.log("[SmartPlanner] Calculation started");
     
     const skeleton = document.getElementById('mapSkeleton');
     if (skeleton) {
@@ -685,7 +701,26 @@ window.calculateAndRoute = async function() {
         
         // Resolve route via routingProvider (resilient fallback handler)
         const routeData = await window.routingProvider.resolveRoute(finalNames, finalCoords, false);
-        console.log("Route received", routeData);
+        
+        // ── Validate resolved route ────────────────────────────────────────────
+        if (!routeData || !routeData.geometry || !routeData.geometry.coordinates ||
+            routeData.geometry.coordinates.length < 2) {
+            const waypointsInRoute = finalNames.slice(1, -1);
+            const errorMsg = waypointsInRoute.length > 0
+                ? `Unable to create route through specified waypoint: ${waypointsInRoute.join(', ')}`
+                : "Route geometry is invalid. Please try different locations.";
+            console.error("[SmartPlanner] Route validation failed:", errorMsg, routeData);
+            showToast(errorMsg, "error");
+            return;
+        }
+        
+        console.log("[SmartPlanner] Route resolved →", {
+            distance: routeData.distance.toFixed(1) + " km",
+            duration: routeData.duration.toFixed(2) + " hrs",
+            source: routeData.source,
+            waypoints: finalNames.slice(1, -1),
+            generatedRoute: finalNames.join(" → ")
+        });
         
         currentRouteDistanceKm = routeData.distance;
         
@@ -708,20 +743,26 @@ window.calculateAndRoute = async function() {
         if (resultsContainer) resultsContainer.classList.remove('hidden');
         
         showMapRoutePreviewCard(routeData.distance, routeData.duration);
-        console.log("Results displayed");
+        console.log("[SmartPlanner] Results displayed successfully");
         
     } catch(e) {
-        console.error(e);
-        alert("Failed to calculate route path. Operating offline fallbacks failed.");
+        console.error("[SmartPlanner] Route calculation failed:", e);
+        const waypointsInRoute = namesList.slice(1, -1);
+        if (waypointsInRoute.length > 0) {
+            showToast(`Unable to create route through specified waypoint: ${waypointsInRoute.join(', ')}`, "error");
+        } else {
+            showToast("Failed to calculate route. Please try different locations.", "error");
+        }
     } finally {
         if (skeleton) {
             skeleton.style.opacity = '0';
             setTimeout(() => { skeleton.style.display = 'none'; }, 500);
         }
         setIsCalculating(false);
-        console.log("Loading state cleared");
+        console.log("[SmartPlanner] Loading state cleared");
     }
 };
+
 
 
 window.clearMapPins = function() {
@@ -1124,31 +1165,61 @@ window.initPlannerMap = async function() {
         if (window.routeStops && window.routeStops.length >= 2) {
             const coordsList = window.routeStops.map(name => getCoordinate(name)).filter(c => !!c);
             if (coordsList.length >= 2) {
+                const waypointNames = window.routeStops.slice(1, -1);
+                console.log("╔══════════════════════════════════════════════════════════");
+                console.log("║ [SmartPlanner] Initial route render from server result");
+                console.log("║ Origin     :", window.routeStops[0]);
+                console.log("║ Destination:", window.routeStops[window.routeStops.length - 1]);
+                console.log("║ Waypoints  :", waypointNames.length > 0 ? waypointNames : "(none)");
+                console.log("║ Full Route :", window.routeStops.join(" → "));
+                console.log("╚══════════════════════════════════════════════════════════");
+
                 try {
                     const routeData = await window.routingProvider.resolveRoute(window.routeStops, coordsList, false);
-                    currentRouteDistanceKm = routeData.distance;
-                    drawRoutePath(routeData.geometry, coordsList, window.routeStops, routeData.source);
-                    
-                    const segments = [];
-                    for (let i = 0; i < coordsList.length - 1; i++) {
-                        const segDist = routeData.legs[i] || (currentRouteDistanceKm / (coordsList.length - 1));
-                        segments.push({
-                            from: window.routeStops[i],
-                            to: window.routeStops[i+1],
-                            distance: parseFloat(segDist.toFixed(1))
+
+                    // Validate geometry before rendering
+                    if (!routeData || !routeData.geometry || !routeData.geometry.coordinates ||
+                        routeData.geometry.coordinates.length < 2) {
+                        const errorMsg = waypointNames.length > 0
+                            ? `Unable to create route through specified waypoint: ${waypointNames.join(', ')}`
+                            : "Route geometry is invalid.";
+                        console.error("[SmartPlanner] Initial route validation failed:", errorMsg);
+                        showToast(errorMsg, "error");
+                    } else {
+                        console.log("[SmartPlanner] Initial route resolved →", {
+                            distance: routeData.distance.toFixed(1) + " km",
+                            source: routeData.source,
+                            generatedRoute: window.routeStops.join(" → ")
                         });
+
+                        currentRouteDistanceKm = routeData.distance;
+                        drawRoutePath(routeData.geometry, coordsList, window.routeStops, routeData.source);
+                        
+                        const segments = [];
+                        for (let i = 0; i < coordsList.length - 1; i++) {
+                            const segDist = routeData.legs[i] || (currentRouteDistanceKm / (coordsList.length - 1));
+                            segments.push({
+                                from: window.routeStops[i],
+                                to: window.routeStops[i+1],
+                                distance: parseFloat(segDist.toFixed(1))
+                            });
+                        }
+                        renderRouteTimeline(segments, window.routeStops);
+                        
+                        const resultsContainer = document.getElementById('routeResultsContainer');
+                        if (resultsContainer) resultsContainer.classList.remove('hidden');
+                        
+                        showMapRoutePreviewCard(currentRouteDistanceKm, routeData.duration);
                     }
-                    renderRouteTimeline(segments, window.routeStops);
-                    
-                    const resultsContainer = document.getElementById('routeResultsContainer');
-                    if (resultsContainer) resultsContainer.classList.remove('hidden');
-                    
-                    showMapRoutePreviewCard(currentRouteDistanceKm, routeData.duration);
                 } catch(e) {
-                    console.error("Failed to load initial OSRM route", e);
+                    console.error("[SmartPlanner] Failed to load initial route", e);
+                    if (waypointNames.length > 0) {
+                        showToast(`Unable to create route through specified waypoint: ${waypointNames.join(', ')}`, "error");
+                    }
                 }
             }
         }
+
         
         bindFormChangeListeners();
         syncMapFromForm();

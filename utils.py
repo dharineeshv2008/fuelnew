@@ -219,13 +219,141 @@ def estimate_days(total_km, daily_km=300):
     return max(1, round((total_km / daily_km) + 0.4))
 
 def parse_ai_query(text, cities):
-    """Parse natural language trip request and extract city names"""
-    text_lower = text.lower()
-    found = []
+    """
+    Parse natural language trip request and extract origin, destination, and waypoints.
+
+    Supports:
+      - "Karur to Namakkal via Mohanur"
+      - "from Karur to Salem via Namakkal via Rasipuram"
+      - "Karur to Salem through Namakkal"
+      - "Madurai to Chennai passing through Trichy"
+      - "Chennai to Coimbatore stop at Salem"
+    """
+    import re
+    import logging
+
+    logger = logging.getLogger(__name__)
+    logger.debug("[parse_ai_query] Input text: %s", text)
+
+    text_norm = ' '.join(text.strip().split())  # normalise whitespace
+
+    # ── Step 1: Tokenise on waypoint keywords (case-insensitive) ──────────────
+    # Normalise all waypoint/connector phrases to a canonical token
+    NORMALIZE = [
+        (r'(?i)\bpassing\s+through\b', '__VIA__'),
+        (r'(?i)\bstop\s+at\b',         '__VIA__'),
+        (r'(?i)\bthrough\b',           '__VIA__'),
+        (r'(?i)\bvia\b',               '__VIA__'),
+        (r'(?i)\bfrom\b',              '__FROM__'),
+        (r'(?i)\bto\b',                '__TO__'),
+    ]
+
+    normalised = text_norm
+    for pattern, replacement in NORMALIZE:
+        normalised = re.sub(pattern, replacement, normalised)
+
+    logger.debug("[parse_ai_query] Normalised text: %s", normalised)
+
+    # Split on canonical tokens (kept as delimiters)
+    parts = re.split(r'(__FROM__|__TO__|__VIA__)', normalised)
+
+    # ── Step 2: Walk the token list building role → text segments ─────────────
+    origin_texts    = []
+    dest_texts      = []
+    waypoint_texts  = []
+
+    current_role = 'origin'   # default: text before __TO__
+    i = 0
+    while i < len(parts):
+        token = parts[i].strip()
+
+        if token == '__FROM__':
+            current_role = 'origin'
+            i += 1
+            continue
+        elif token == '__TO__':
+            current_role = 'destination'
+            i += 1
+            continue
+        elif token == '__VIA__':
+            current_role = 'waypoint'
+            i += 1
+            continue
+        else:
+            # It's a text segment — assign to current role
+            seg = token
+            if seg:
+                if current_role == 'origin':
+                    origin_texts.append(seg)
+                elif current_role == 'destination':
+                    dest_texts.append(seg)
+                elif current_role == 'waypoint':
+                    waypoint_texts.append(seg)
+        i += 1
+
+
+    logger.debug("[parse_ai_query] origin_texts=%s dest_texts=%s waypoint_texts=%s",
+                 origin_texts, dest_texts, waypoint_texts)
+
+    # ── Step 3: Match each text segment to known cities ───────────────────────
     sorted_cities = sorted(cities, key=len, reverse=True)
-    for city in sorted_cities:
-        if city.lower() in text_lower and city not in found:
-            found.append(city)
-    if len(found) >= 2:
-        return {'origin': found[0], 'stops': found[1:-1], 'destination': found[-1], 'parsed': True, 'found': found}
-    return {'parsed': False, 'found': found}
+
+    def find_city_in_text(seg):
+        """Return the best matching city name found inside a text segment."""
+        seg_lower = seg.lower()
+        for city in sorted_cities:
+            if city.lower() in seg_lower:
+                return city
+        return None
+
+    origin      = find_city_in_text(' '.join(origin_texts))   if origin_texts      else None
+    destination = find_city_in_text(' '.join(dest_texts))     if dest_texts        else None
+    waypoints   = []
+    for wt in waypoint_texts:
+        city = find_city_in_text(wt)
+        if city and city not in waypoints:
+            waypoints.append(city)
+
+    logger.debug("[parse_ai_query] Matched → origin=%s destination=%s waypoints=%s",
+                 origin, destination, waypoints)
+
+    # ── Step 4: Fallback — if structured parsing failed, use the old scan ──────
+    if not origin or not destination:
+        logger.warning("[parse_ai_query] Structured parse failed, falling back to scan.")
+        found_fallback = []
+        text_lower = text.lower()
+        for city in sorted_cities:
+            if city.lower() in text_lower and city not in found_fallback:
+                found_fallback.append(city)
+        if len(found_fallback) >= 2:
+            origin      = found_fallback[0]
+            destination = found_fallback[-1]
+            waypoints   = found_fallback[1:-1]
+            logger.debug("[parse_ai_query] Fallback result → origin=%s destination=%s waypoints=%s",
+                         origin, destination, waypoints)
+        else:
+            logger.warning("[parse_ai_query] Could not detect locations from: %s", text)
+            return {'parsed': False, 'found': found_fallback, 'waypoints': [], 'debug': {}}
+
+    # Remove waypoints that are the same as origin/destination
+    waypoints = [w for w in waypoints if w and w != origin and w != destination]
+
+    all_found = [origin] + waypoints + [destination]
+
+    debug_info = {
+        'origin': origin,
+        'destination': destination,
+        'waypoints': waypoints,
+        'route': ' → '.join(all_found),
+    }
+    logger.info("[parse_ai_query] Result → %s", debug_info)
+
+    return {
+        'origin':      origin,
+        'destination': destination,
+        'waypoints':   waypoints,
+        'stops':       waypoints,   # backward-compat alias
+        'parsed':      True,
+        'found':       all_found,
+        'debug':       debug_info,
+    }

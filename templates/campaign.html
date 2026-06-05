@@ -473,6 +473,7 @@
         <!-- Hidden core variables synchronized from active parameters -->
         <input type="hidden" name="mileage" id="formMileage" value="15">
         <input type="hidden" name="fuel_price" id="formFuelPrice" value="{{ session.get('price_petrol', 102.0) }}">
+        <!-- No custom pins — feature removed -->
         
         <!-- MAIN WORKSPACE: Responsive 3-Column Grid -->
         <div class="campaign-workspace px-2 mb-6">
@@ -503,11 +504,12 @@
                     <!-- ── HEADER CONTROLS (flex-shrink:0 — always at top) ── -->
                     <div class="panel-header-controls">
                         <!-- Tab Switcher -->
+                        <!-- Tab Switcher: Constituency / District only -->
                         <div id="campaignTabs" class="flex gap-1 bg-gray-100 dark:bg-white/5 rounded-2xl p-1 mb-3 w-full">
-                            <a href="?tab=constituency" class="flex-1 text-center py-2 px-3 rounded-xl text-xs font-bold transition-all {% if active_tab == 'constituency' %}bg-primary text-white shadow{% else %}text-gray-500 hover:text-gray-700 dark:hover:text-gray-300{% endif %}">
+                            <a href="?tab=constituency" class="flex-1 text-center py-2 px-1 rounded-xl text-[11px] font-bold whitespace-nowrap overflow-hidden text-ellipsis transition-all {% if active_tab == 'constituency' %}bg-primary text-white shadow{% else %}text-gray-500 hover:text-gray-700 dark:hover:text-gray-300{% endif %}">
                                 <i class="fa-solid fa-landmark mr-1"></i> Constituencies
                             </a>
-                            <a href="?tab=district" class="flex-1 text-center py-2 px-3 rounded-xl text-xs font-bold transition-all {% if active_tab == 'district' %}bg-primary text-white shadow{% else %}text-gray-500 hover:text-gray-700 dark:hover:text-gray-300{% endif %}">
+                            <a href="?tab=district" class="flex-1 text-center py-2 px-1 rounded-xl text-[11px] font-bold whitespace-nowrap overflow-hidden text-ellipsis transition-all {% if active_tab == 'district' %}bg-primary text-white shadow{% else %}text-gray-500 hover:text-gray-700 dark:hover:text-gray-300{% endif %}">
                                 <i class="fa-solid fa-map mr-1"></i> Districts
                             </a>
                         </div>
@@ -553,7 +555,26 @@
                     </div><!-- /panel-header-controls -->
 
                     <!-- ── SCROLLABLE LIST (flex:1 + min-height:0 → only this scrolls) ── -->
-                    {% if active_tab == 'constituency' %}
+                    {% if active_tab == 'district' %}
+                    <!-- DISTRICT GRID -->
+                    <div class="const-list-container" id="districtList">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="districtGrid">
+                            {% for d in districts %}
+                            {% set is_dist_selected = false %}
+                            {% if result and result.type == 'district' %}
+                                {% for sd in result.districts %}
+                                    {% if sd.id == d.id %}{% set is_dist_selected = true %}{% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <label class="const-item-checkbox" data-name="{{ d.name }}">
+                                <input type="checkbox" name="district_ids[]" value="{{ d.id }}" class="dist-check" data-name="{{ d.name }}" onchange="updateDistCount(this)" {% if is_dist_selected %}checked{% endif %}>
+                                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ d.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div><!-- /districtList -->
+                    {% else %}
+                    <!-- CONSTITUENCY ACCORDION -->
                     <div class="const-list-container" id="constituencyList">
                         <div class="space-y-1">
                             {% for district, group in constituencies | groupby('district') %}
@@ -590,32 +611,14 @@
                             </div>
                             {% endfor %}
                         </div>
-                    </div><!-- /const-list-container -->
-                    {% else %}
-                    <div class="const-list-container" id="districtList">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="districtGrid">
-                            {% for d in districts %}
-                            {% set is_dist_selected = false %}
-                            {% if result and result.type == 'district' %}
-                                {% for sd in result.districts %}
-                                    {% if sd.id == d.id %}{% set is_dist_selected = true %}{% endif %}
-                                {% endfor %}
-                            {% endif %}
-                            <label class="const-item-checkbox" data-name="{{ d.name }}">
-                                <input type="checkbox" name="district_ids[]" value="{{ d.id }}" class="dist-check" data-name="{{ d.name }}" onchange="updateDistCount(this)" {% if is_dist_selected %}checked{% endif %}>
-                                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ d.name }}</span>
-                            </label>
-                            {% endfor %}
-                        </div>
-                    </div><!-- /const-list-container -->
+                    </div><!-- /constituencyList -->
                     {% endif %}
 
-                    <!-- ── STICKY FOOTER SUMMARY ── -->
                     <div class="pt-2 border-t border-gray-100 dark:border-white/5 flex items-center justify-between flex-shrink-0 mt-1">
-                        {% if active_tab == 'constituency' %}
-                        <span class="text-xs text-gray-400 font-semibold" id="selectedCountLabel">Selected: 0 Constituencies, 0 Districts</span>
+                        {% if active_tab == 'district' %}
+                        <span class="text-xs text-gray-400 font-semibold" id="selectedCountLabel">Selected: <span class="text-primary font-black">0 Districts</span></span>
                         {% else %}
-                        <span class="text-xs text-gray-400 font-semibold" id="selectedCountLabel">Selected: 0 Districts</span>
+                        <span class="text-xs text-gray-400 font-semibold" id="selectedCountLabel">Selected: <span class="text-primary font-black">0 Constituencies</span>, <span class="text-secondary font-black">0 Districts</span></span>
                         {% endif %}
                     </div>
 
@@ -632,10 +635,10 @@
                     
                     <div class="flex gap-2 flex-shrink-0">
                         <div id="readyBadge" class="px-2.5 py-0.5 bg-success/10 text-success text-[10px] font-bold uppercase tracking-wider rounded-lg border border-success/20 {% if not result %}hidden{% endif %}">
-                            <i class="fa-solid fa-circle-check mr-1"></i> Optimized Route
+                            <i class="fa-solid fa-route mr-1"></i> Route Ready
                         </div>
-                        <div id="estimateBadge" class="px-2.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-lg border border-primary/20 hidden">
-                            <i class="fa-solid fa-calculator mr-1"></i> Live Estimate
+                        <div id="estimateBadge" class="px-2.5 py-0.5 bg-warning/10 text-warning text-[10px] font-bold uppercase tracking-wider rounded-lg border border-warning/20 hidden">
+                            <i class="fa-solid fa-bolt mr-1"></i> Optimized
                         </div>
                     </div>
                 </div>
@@ -667,12 +670,15 @@
                         </select>
                     </div>
 
-                    <!-- Floating Map Action Circle Buttons -->
+                    <!-- Floating Map Action Circle Buttons (Custom Pin removed) -->
                     <div class="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
-                        <button type="button" onclick="locateUser()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-[#2ECC71] border border-[#2ECC71]/25 flex items-center justify-center shadow-lg" title="Locate Me">
+                        <button type="button" onclick="fitRouteBounds()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-[#3498DB] border border-[#3498DB]/25 flex items-center justify-center shadow-lg transition-all" title="Fit Route Bounds">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                        <button type="button" onclick="locateUser()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-[#2ECC71] border border-[#2ECC71]/25 flex items-center justify-center shadow-lg transition-all" title="Locate Me">
                             <i class="fa-solid fa-location-crosshairs"></i>
                         </button>
-                        <button type="button" onclick="resetMapZoom()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-primary border border-primary/25 flex items-center justify-center shadow-lg" title="Reset View">
+                        <button type="button" onclick="resetMapZoom()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-primary border border-primary/25 flex items-center justify-center shadow-lg transition-all" title="Reset View">
                             <i class="fa-solid fa-arrows-to-eye"></i>
                         </button>
                         <button type="button" onclick="clearCampaignRoute()" class="map-circle-btn w-10 h-10 rounded-full bg-gray-950/90 text-red-500 border border-red-500/25 flex items-center justify-center shadow-lg" title="Clear Route">
@@ -694,8 +700,9 @@
                     <div class="map-floating-control">
                         <h4>GIS Layers</h4>
                         <label><input type="checkbox" id="layerHighways" checked onchange="toggleMapLayer('highways')"> Road Networks</label>
-                        <label><input type="checkbox" id="layerDistricts" checked onchange="toggleMapLayer('districts')"> District HQs</label>
+                        <label><input type="checkbox" id="layerDistricts" checked onchange="toggleMapLayer('districts')"> District Markers</label>
                         <label><input type="checkbox" id="layerConstituencies" checked onchange="toggleMapLayer('constituencies')"> Constituencies</label>
+                        <label><input type="checkbox" id="layerKonguTowns" checked onchange="toggleMapLayer('konguTowns')"> Kongu Belt Towns</label>
                         <label><input type="checkbox" id="layerGovernment" checked onchange="toggleMapLayer('government')"> Collectorates</label>
                         <label><input type="checkbox" id="layerTransport" checked onchange="toggleMapLayer('transport')"> Transport Hubs</label>
                         <label><input type="checkbox" id="layerHospitals" checked onchange="toggleMapLayer('hospitals')"> Hospitals</label>
@@ -842,9 +849,15 @@
 
                     <!-- Campaign Tour Schedule (bottom portion) -->
                     <div class="flex-1 min-h-0 flex flex-col border-t border-gray-100 dark:border-white/5 pt-3">
-                        <div class="flex items-center gap-3 mb-2 flex-shrink-0">
-                            <div class="w-1.5 h-4 bg-warning rounded-full"></div>
-                            <h3 class="fw-card-title">Campaign Tour Schedule</h3>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2 flex-shrink-0">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-4 bg-warning rounded-full"></div>
+                                <h3 class="fw-card-title">Campaign Tour Schedule</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Stop Dur. (hrs):</label>
+                                <input type="number" id="stopDurationHrs" value="2" step="0.5" min="0" class="fw-input bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-md w-14 py-1 px-1.5 text-xs text-center font-bold !mb-0" onchange="triggerLivePreviewRecalc()">
+                            </div>
                         </div>
 
                         <div id="tourScheduleWrapper" class="tour-schedule-scroll">

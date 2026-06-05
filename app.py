@@ -422,15 +422,39 @@ def smart_planner():
         if action == "ai_parse":
             text = request.form.get("ai_text", "")
             parsed = parse_ai_query(text, cities)
-            form_data = {'origin': parsed.get('origin', ''),
-                         'destination': parsed.get('destination', ''),
-                         'stops': parsed.get('stops', []),
-                         'ai_text': text}
-            if parsed.get('parsed'):
+
+            # ── Debug logging ──────────────────────────────────────────────────
+            logging.info("[SmartPlanner] AI Parse Input: %s", text)
+            logging.info("[SmartPlanner] Origin:      %s", parsed.get('origin', 'NOT FOUND'))
+            logging.info("[SmartPlanner] Destination: %s", parsed.get('destination', 'NOT FOUND'))
+            logging.info("[SmartPlanner] Waypoints:   %s", parsed.get('waypoints', []))
+            logging.info("[SmartPlanner] Route:       %s", parsed.get('debug', {}).get('route', ''))
+
+            waypoints = parsed.get('waypoints', [])
+
+            # Validate waypoints are known cities
+            unknown_waypoints = [w for w in waypoints if w and w not in cities]
+            if unknown_waypoints:
+                ai_message = f"Unable to create route through specified waypoint: {', '.join(unknown_waypoints)}"
+                form_data = {'origin': parsed.get('origin', ''),
+                             'destination': parsed.get('destination', ''),
+                             'stops': [w for w in waypoints if w in cities],
+                             'ai_text': text}
+            elif parsed.get('parsed'):
                 route_str = ' → '.join(parsed.get('found', []))
-                ai_message = f"Detected route: {route_str}"
+                wpt_str = ', '.join(waypoints) if waypoints else 'None'
+                ai_message = (
+                    f"Detected route: {route_str} | "
+                    f"Waypoints: {wpt_str}"
+                )
+                form_data = {'origin': parsed.get('origin', ''),
+                             'destination': parsed.get('destination', ''),
+                             'stops': waypoints,
+                             'ai_text': text}
             else:
                 ai_message = "Could not detect locations. Please try: 'from Salem to Erode via Namakkal'"
+                form_data = {'ai_text': text}
+
         else:
             origin = request.form.get("origin", "").strip()
             destination = request.form.get("destination", "").strip()
